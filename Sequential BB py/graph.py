@@ -19,7 +19,7 @@ class Graph:
     def __init__(self, num_nodes, 
                  coloring_algorithm=DSatur(), 
                  clique_algorithm=DLS(),
-                 branching_strategy=DefaultBranchingStrategy()):
+                 branching_strategy=SaturationBranchingStrategy()):
         self.num_nodes = num_nodes
         self.adj_list = defaultdict(list)
         self.coloring_algorithm = coloring_algorithm
@@ -154,10 +154,10 @@ def branch_and_bound(graph, time_limit=10000):
         if node.lb >= best_ub:
             continue
         if current_ub < best_ub:
-            print(f"IMPROVED UB! {current_ub}")
+            print(f"IMPROVED UB! {current_ub} Time: {time.time() - start_time}")
             best_ub = current_ub
         if current_lb > best_lb:
-            print(f"IMPROVED LB! {current_lb}")
+            print(f"IMPROVED LB! {current_lb} Time: {time.time() - start_time}")
             best_lb = current_lb
         if node.lb == best_ub:
             break
@@ -275,6 +275,8 @@ def main():
     #   all "myciel*" instances solved to optimality, but the lb is never improved (due to maxClique = 2, chromatic number > 2)
     #       so they keep running until the time limit (or all possible combinations are assigned in nodes)
     #   
+
+    # Idea? Order branch queue by (ub - lb) instead of just ub ?
 
     #  To clear instances solved
     # os.remove("solved_instances.txt") 
