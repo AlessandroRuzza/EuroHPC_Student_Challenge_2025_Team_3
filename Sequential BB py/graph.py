@@ -17,7 +17,7 @@ class Graph:
     # Constructor
     def __init__(self, num_nodes, 
                  coloring_algorithm=DSatur(), 
-                 clique_algorithm=GreedyCliqueFinder(),
+                 clique_algorithm=DLS(),
                  branching_strategy=DefaultBranchingStrategy()):
         self.num_nodes = num_nodes
         self.adj_list = defaultdict(list)
@@ -211,29 +211,20 @@ def branch_and_bound(graph, time_limit=10000):
 
 ##########################################################################################
 
-def main():
-    graph = parse_col_file("instances/anna.col")
+def solve_instance(filename):
+    graph = parse_col_file(filename)
 
     # Set up algorithms
     graph.set_coloring_algorithm(DSatur())
     graph.set_clique_algorithm(DLS())
     graph.set_branching_strategy(DegreeBranchingStrategy())
 
-
-    print("Coloring graph...")
-    coloring = graph.find_coloring(UnionFind(graph.num_nodes), set())
-    print(f"Coloring result: {coloring}")
-    print(f"Colors used: {max(coloring)+1}")
-
-
-    print("Finding max clique...")
-    max_clique = graph.find_max_clique(UnionFind(graph.num_nodes), set())
-    print(f"Max clique: {max_clique}")
-    print(f"Max clique size: {len(max_clique)}")
-
     best_ub, bestColoring = branch_and_bound(graph)
     print(f"Best UB = {best_ub}")
     print(f"Is valid? {graph.validate(bestColoring)}")
+
+def main():
+    solve_instance("instances/anna.col")
 
 
 if __name__ == "__main__":
