@@ -1,5 +1,6 @@
 from graph import Graph
-
+import time
+import random
 
 # Generate a random graph with num_nodes nodes and density probability of edge between any two nodes
 def generate_random_graph(num_nodes, density):
@@ -42,6 +43,13 @@ def parse_col_file(file_path):
 
     return graph
 
+def timeAsStr(timeStruct = time.localtime()):
+    return time.strftime('%H:%M:%S')
+
+def secondsAsStr(s):
+    h = s/60/60
+    m = s/60
+    return f"{h}h{m}m{s}s"
 
 def output_results(instance_name, solver_name, solver_version, num_workers, num_cores, wall_time, time_limit, graph, coloring):
     # Get file name without path and extension

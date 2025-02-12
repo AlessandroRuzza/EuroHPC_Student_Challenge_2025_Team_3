@@ -323,21 +323,21 @@ def branch_and_bound(graph, time_limit=10000):
     print(f"Starting UB, LB:  {ub, lb}")
 
     while queue:
-
+        curTime = time.time() - start_time
         current_ub, node = heapq.heappop(queue)
         current_lb = node.lb
         if node.lb >= best_ub:
             continue
         if current_ub < best_ub:
-            print(f"IMPROVED UB! {current_ub} Time: {time.time() - start_time}")
+            print(f"IMPROVED UB! {current_ub} Time: {secondsAsStr(curTime)}")
             best_ub = current_ub
         if current_lb > best_lb:
-            print(f"IMPROVED LB! {current_lb} Time: {time.time() - start_time}")
+            print(f"IMPROVED LB! {current_lb} Time: {secondsAsStr(curTime)}")
             best_lb = current_lb
         if node.lb == best_ub:
             break
 
-        if (time.time() - start_time) > time_limit:
+        if (curTime) > time_limit:
             is_over_time_limit = True
             continue
 
@@ -459,7 +459,7 @@ def main():
 
     # Idea? Order branch queue by (ub - lb) instead of just ub ?
 
-    print(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}")
+    print(f"Starting at: {timeAsStr()}")
 
     #  To clear instances solved
     # os.remove("solved_instances.txt") 
@@ -491,3 +491,6 @@ if __name__ == "__main__":
     main()
 
 
+# Test diff ranks per node, diff threads per rank (MPI + OpenMP)
+# Different setups work for different machines
+# mrahn
