@@ -1,8 +1,11 @@
-from graph import Graph
+# from graph.graph import Graph
+import random
+import time
 
 
 # Generate a random graph with num_nodes nodes and density probability of edge between any two nodes
 def generate_random_graph(num_nodes, density):
+    from graph.base import Graph
     graph = Graph(num_nodes)
     random.seed(time.time())
 
@@ -16,6 +19,7 @@ def generate_random_graph(num_nodes, density):
 
 # Parse a .col file and return a graph
 def parse_col_file(file_path):
+    from graph.base import Graph
     graph = None
 
     with open(file_path, "r") as file:
@@ -46,7 +50,7 @@ def parse_col_file(file_path):
 def output_results(instance_name, solver_name, solver_version, num_workers, num_cores, wall_time, time_limit, graph, coloring):
     # Get file name without path and extension
     instance_file = instance_name.split('/')[-1].split('.')[0]
-    output_file = f"results/{instance_file}.output"
+    output_file = f"../results/{instance_file}.output"
     
     with open(output_file, 'w') as f:
         f.write(f"problem_instance_file_name: {instance_file}.col\n")
