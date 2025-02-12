@@ -14,12 +14,26 @@ from utils import *
 
 
 class Graph:
-
+    """
+    Graph class
+    """
     # Constructor
     def __init__(self, num_nodes, 
                  coloring_algorithm=DSatur(), 
                  clique_algorithm=DLS(),
                  branching_strategy=DefaultBranchingStrategy()):
+        """
+        Constructor for the Graph class
+
+        :param num_nodes: Number of nodes in the graph
+        :type num_nodes: int
+        :param coloring_algorithm: Coloring algorithm to use
+        :type coloring_algorithm: ColoringHeuristic
+        :param clique_algorithm: Clique algorithm to use
+        :type clique_algorithm: MaxCliqueHeuristic
+        :param branching_strategy: Branching strategy to use
+        :type branching_strategy: BranchingStrategy
+        """
         self.num_nodes = num_nodes
         self.adj_list = defaultdict(list)
         self.coloring_algorithm = coloring_algorithm
@@ -30,41 +44,120 @@ class Graph:
     ##### Graph operations
 
     def add_edge(self, u, v):
+        """
+        Add an edge to the graph
+
+        :param u: First node
+        :type u: int
+        :param v: Second node
+        :type v: int
+        :return: None
+        :rtype: None
+        """
         if v not in self.adj_list[u]:
             self.adj_list[u].append(v)
             self.adj_list[v].append(u)
 
     def is_connected(self, u, v):
+        """
+        Check if two nodes are connected
+
+        :param u: First node
+        :type u: int
+        :param v: Second node
+        :type v: int
+        :return: True if the nodes are connected, False otherwise
+        :rtype: bool
+        """
         return v in self.adj_list[u]
 
     def degree(self, node):
+        """
+        Get the degree of a node
+
+        :param node: Node to get the degree of
+        :type node: int
+        :return: Degree of the node
+        :rtype: int
+        """
         return len(self.adj_list[node])
 
 
     ##### Coloring and clique algorithms
 
     def set_coloring_algorithm(self, algorithm):
+        """
+        Method to set the coloring algorithm
+
+        :param algorithm: Coloring algorithm to set
+        :type algorithm: ColoringHeuristic
+        """
         self.coloring_algorithm = algorithm
 
     def set_clique_algorithm(self, algorithm):
+        """
+        Method to set the clique algorithm
+
+        :param algorithm: Clique algorithm to set
+        :type algorithm: MaxCliqueHeuristic
+        """
         self.clique_algorithm = algorithm
 
     def set_branching_strategy(self, strategy):
+        """
+        Method to set the branching strategy
+
+        :param strategy: Branching strategy to set
+        :type strategy: BranchingStrategy
+        """
         self.branching_strategy = strategy
 
     def find_coloring(self, union_find, added_edges):
+        """
+        Main method to find a coloring of the graph
+
+        :param union_find: Data structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: Data structure to keep track of vertices with different colors
+        :type added_edges: list
+        :raises ValueError: If no coloring algorithm is set
+        :return: Coloring of the graph as a list of colors
+        :rtype: list
+        """
         if self.coloring_algorithm is None:
             raise ValueError("No coloring algorithm set")
 
         return self.coloring_algorithm.find_coloring(self, union_find, added_edges)
 
     def find_max_clique(self, union_find, added_edges):
+        """
+        Main method to find a maximum clique in the graph
+
+        :param union_find: Data structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: Data structure to keep track of vertices with different colors
+        :type added_edges: list
+        :raises ValueError: If no clique algorithm is set
+        :return: Maximum clique of the graph as a set of nodes
+        :rtype: set
+        """
         if self.clique_algorithm is None:
             raise ValueError("No clique algorithm set")
 
         return self.clique_algorithm.find_max_clique(self, union_find, added_edges)
 
     def find_pair(self, union_find, added_edges):
+        """
+        Main method to find a pair of nodes to branch on
+
+        :param union_find: Data structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: Data structure to keep track of vertices with different colors
+        :type added_edges: list
+        :raises ValueError: If no branching strategy is set
+        :return: Pair of nodes to branch on
+        :rtype: tuple
+        """
         if self.branching_strategy is None:
             raise ValueError("No branching strategy set")
 
@@ -75,14 +168,34 @@ class Graph:
 
 
     def __len__(self):
+        """
+        Get the number of nodes in the graph
+
+        :return: Number of nodes in the graph
+        :rtype: int
+        """
         return self.num_nodes
 
     def __str__(self):
+        """
+        String representation of the graph
+
+        :return: String representation of the graph
+        :rtype: str
+        """
         return "\n".join(f"{node}: {neighbors}" for node, neighbors in self.adj_list.items())
 
     ##### Coloring validation
 
     def validate(self, coloring):
+        """
+        Validate the coloring of the graph, checking if any node has a neighbor with the same color
+
+        :param coloring: Coloring of the graph
+        :type coloring: list
+        :return: String indicating if the coloring is valid or not. If invalid, it returns the first invalid coloring found.
+        :rtype: str
+        """
         for node in range(self.num_nodes):
             color = coloring[node]
             neighbors = list(i for i in self.adj_list[node])
@@ -94,6 +207,18 @@ class Graph:
         return "TRUE."
 
     def correct_coloring_check(self, node, color, coloring):
+        """
+        Check if the coloring is correct for a given node
+
+        :param node: Node to check
+        :type node: int
+        :param color: Color of the node
+        :type color: int
+        :param coloring: Coloring of the graph
+        :type coloring: list
+        :return: True if the coloring is correct, False otherwise
+        :rtype: bool
+        """
         neighborColors = (coloring[i] for i in self.adj_list[node])
         return not color in neighborColors
 
@@ -101,28 +226,76 @@ class Graph:
 ##########################################################################################
 
 class UnionFind:
+    """
+    Data structure to keep track of vertex colors
+    """
     def __init__(self, size):
+        """
+        Constructor for the UnionFind class
+
+        :param size: Size of the UnionFind data structure
+        :type size: int
+        """
         self.parent = list(range(size))
 
     def find(self, x):
+        """
+        Find the color of the node
+
+        :param x: Node to find the color of
+        :type x: int
+        :return: Color of the node
+        :rtype: int
+        """
         if self.parent[x] != x:
             self.parent[x] = self.find(self.parent[x])
         return self.parent[x]
 
     def union(self, x, y):
+        """
+        Make the colors of two nodes the same
+
+        :param x: First node
+        :type x: int
+        :param y: Second node
+        :type y: int
+        """
         fx = self.find(x)
         fy = self.find(y)
         if fx != fy:
             self.parent[fy] = fx
 
 class BranchAndBoundNode:
+    """
+    Node for the branch and bound algorithm
+    """
     def __init__(self, union_find, added_edges, lb, ub):
+        """
+        Constructor for the BranchAndBoundNode class
+
+        :param union_find: Data structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: Data structure to keep track of vertices with different colors
+        :type added_edges: set
+        :param lb: Lower bound of the node
+        :type lb: int
+        :param ub: Upper bound of the node
+        :type ub: int
+        """
         self.union_find = union_find
         self.added_edges = set(added_edges)
         self.lb = lb
         self.ub = ub
 
     def __lt__(self, other):
+        """
+        Compare two nodes based on their upper bound
+
+        :param other: Other node to compare to
+        :type other: BranchAndBoundNode
+        :return: True if the current node has a smaller upper bound, False otherwise
+        :rtype: bool
+        """
         return self.ub < other.ub
 
 ##########################################################################################

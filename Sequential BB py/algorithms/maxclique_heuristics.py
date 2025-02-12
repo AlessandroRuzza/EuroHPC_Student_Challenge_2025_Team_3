@@ -1,19 +1,35 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 
+
 import random
 
 class MaxCliqueHeuristic(ABC):
+    """
+    Abstract base class for maximum clique heuristics
+    """
     @abstractmethod
     def find_max_clique(self, graph, union_find, added_edges):
         """
-        Returns a list of nodes that form the maximum clique found
+        Returns a set of nodes that form the maximum clique found
+
+        :param graph: The graph to find the maximum clique in
+        :type graph: Graph
+        :param union_find: Data structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: Data structure to keep track of vertices with different colors
+        :type added_edges: list
+        :return: Set of nodes that form the maximum clique
+        :rtype: set
         """
         pass
 
 
 
 class GreedyCliqueFinder(MaxCliqueHeuristic):
+    """
+    First implementation ofGreedy algorithm to find the maximum clique in a graph
+    """
     def find_max_clique(self, graph, union_find, added_edges):
         remaining_nodes = list(range(len(graph)))
         clique = []
@@ -29,6 +45,9 @@ class GreedyCliqueFinder(MaxCliqueHeuristic):
 
 
 class HeuristicCliqueFinder(MaxCliqueHeuristic):
+    """
+    Implementation of Greedy algorithm using union-find data structure to find the maximum clique in a graph
+    """
     def find_max_clique(self, graph, union_find, added_edges):
         merged = {}
         
@@ -56,26 +75,50 @@ class HeuristicCliqueFinder(MaxCliqueHeuristic):
         return clique
 
 class DLS(MaxCliqueHeuristic):
+    """
+    Implementation of Dynamic Local Search (DLS) to find the maximum clique in a graph
+    """
     def __init__(self, max_steps=100, penalty_delay=1):
+        """
+        Constructor for the DLS heuristic
+
+        :param max_steps: Number of iterations to run the algorithm before stopping
+        :type max_steps: int
+        :default max_steps: 100
+        :param penalty_delay: Delay in penalty updates
+        :type penalty_delay: int
+        :default penalty_delay: 1
+        """
         self.max_steps = max_steps
         self.penalty_delay = penalty_delay
-        self.penalties = []
+        self.penalties = {}
 
     def find_max_clique(self, graph, union_find, added_edges):
-        """
-        Dynamic Local Search (DLS) implementation for finding maximum clique
-        Returns the size of maximum clique found
-        """
 
         #### Helper functions
 
         def select_min_penalty(vertices, penalties):
-            """Select the vertex with the minimum penalty."""
+            """Select the vertex with the minimum penalty.
+
+            :param vertices: List of vertices to choose from
+            :type vertices: list
+            :param penalties: Dictionary of penalties for each vertex
+            :type penalties: dict
+            :return: Vertex with the minimum penalty
+            :rtype: int
+            """
             min_penalty = min(penalties[v] for v in vertices)
             return random.choice([v for v in vertices if penalties[v] == min_penalty])
         
         def expand(clique, penalties):
-            """Expand the current clique by adding suitable vertices."""
+            """Expand the current clique by adding suitable vertices.
+
+            :param clique: Current clique
+            :type clique: set
+            :param penalties: Dictionary of penalties for each vertex
+            :type penalties: dict
+            :return: Expanded clique
+            """
             while True:
                 candidates = [v for v in range(graph.num_nodes) 
                             if v not in clique and 
@@ -87,7 +130,13 @@ class DLS(MaxCliqueHeuristic):
             return clique
         
         def plateau_search(clique, penalties):
-            """Swap vertices to maintain clique size while exploring plateau."""
+            """Swap vertices to maintain clique size while exploring plateau.
+
+            :param clique: Current clique
+            :type clique: set
+            :param penalties: Dictionary of penalties for each vertex
+            :type penalties: dict
+            """
 
             steps = 0
             while True and steps < self.max_steps:
@@ -151,21 +200,48 @@ class DLSwithColors(MaxCliqueHeuristic):
         #### Helper functions
 
         def get_vertex_color(v, union_find):
-            """Get the color (representative) of a vertex."""
+            """Get the color (representative) of a vertex.
+
+            :param v: Vertex to get the color of
+            :type v: int
+            :param union_find: Data Structure to keep track of vertex colors
+            :type union_find: UnionFind
+            :return: Color of the vertex
+            """
             return union_find.find(v)
         
         def get_clique_colors(clique, union_find):
-            """Get the set of colors present in the current clique."""
+            """Get the set of colors present in the current clique.
+
+            :param clique: Current clique
+            :type clique: set
+            :param union_find: Data Structure to keep track of vertex colors
+            :type union_find: UnionFind
+            :return: Set of colors present in the current clique
+            """
             return {get_vertex_color(v, union_find) for v in clique}
         
 
         def select_min_penalty(vertices, penalties):
-            """Select the vertex with the minimum penalty."""
+            """Select the vertex with the minimum penalty.
+
+            :param vertices: List of vertices to choose from
+            :type vertices: list
+            :param penalties: Dictionary of penalties for each vertex
+            :type penalties: dict
+            :return: Vertex with the minimum penalty
+            """
             min_penalty = min(penalties[v] for v in vertices)
             return random.choice([v for v in vertices if penalties[v] == min_penalty])
         
         def expand(clique, penalties):
-            """Expand current clique by adding vertices of different colors."""
+            """Expand current clique by adding vertices of different colors.
+
+            :param clique: Current clique
+            :type clique: set
+            :param penalties: Dictionary of penalties for each vertex
+            :type penalties: dict
+            """
             while True:
                 clique_colors = get_clique_colors(clique, union_find)
                 candidates = [
@@ -181,7 +257,13 @@ class DLSwithColors(MaxCliqueHeuristic):
             return clique
         
         def plateau_search(clique, penalties):
-            """Swap vertices maintaining color constraints."""
+            """Swap vertices maintaining color constraints.
+
+            :param clique: Current clique
+            :type clique: set
+            :param penalties: Dictionary of penalties for each vertex
+            :type penalties: dict
+            """
             steps = 0
             while steps < self.max_steps:
                 clique_colors = get_clique_colors(clique, union_find)
