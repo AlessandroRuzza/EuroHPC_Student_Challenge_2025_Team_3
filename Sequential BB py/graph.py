@@ -21,7 +21,7 @@ class Graph:
     def __init__(self, num_nodes, 
                  coloring_algorithm=DSatur(), 
                  clique_algorithm=DLS(),
-                 branching_strategy=DefaultBranchingStrategy()):
+                 branching_strategy=SaturationBranchingStrategy()):
         """
         Constructor for the Graph class
 
@@ -327,10 +327,10 @@ def branch_and_bound(graph, time_limit=10000):
         if node.lb >= best_ub:
             continue
         if current_ub < best_ub:
-            print(f"IMPROVED UB! {current_ub}")
+            print(f"IMPROVED UB! {current_ub} Time: {time.time() - start_time}")
             best_ub = current_ub
         if current_lb > best_lb:
-            print(f"IMPROVED LB! {current_lb}")
+            print(f"IMPROVED LB! {current_lb} Time: {time.time() - start_time}")
             best_lb = current_lb
         if node.lb == best_ub:
             break
@@ -387,7 +387,7 @@ def branch_and_bound(graph, time_limit=10000):
             heapq.heappush(queue, (ub2, BranchAndBoundNode(uf2, edges2, lb2, ub2)))
         
     bestColoring = graph.find_coloring(node.union_find, node.added_edges)
-    return best_ub, bestColoring, is_over_time_limit
+    return best_lb, best_ub, bestColoring, is_over_time_limit
 
 ##########################################################################################
 
@@ -409,12 +409,11 @@ def solve_instance(filename, timeLimit):
 
 
     start_time = time.time()
-    best_ub, bestColoring, isOverTimeLimit = branch_and_bound(graph, timeLimit)
+    best_lb, best_ub, bestColoring, isOverTimeLimit = branch_and_bound(graph, timeLimit)
     wall_time = int(time.time() - start_time)
 
     isValid = graph.validate(bestColoring)
 
-    
     # Output results
     output_results(
         instance_name=filename,
@@ -427,7 +426,12 @@ def solve_instance(filename, timeLimit):
         graph=graph,
         coloring=bestColoring
     )
-    print(f"Best UB = {best_ub}")
+    if best_lb == best_ub:
+        print(f"Optimal solution! Chromatic number = {best_ub}")
+    else:
+        print(f"Best (LB,UB) = ({best_lb},{best_ub})")
+    isValid = graph.validate(bestColoring)
+
     print(f"Is valid? {isValid}")
     print(f"Passed time limit? {isOverTimeLimit}")
 
@@ -445,9 +449,14 @@ def main():
     # longest instances: 
     #   fpsol2  (27.7s)
     #   inithx  (>10k s)
+    #   queen*  (> s)
     #   all "myciel*" instances solved to optimality, but the lb is never improved (due to maxClique = 2, chromatic number > 2)
     #       so they keep running until the time limit (or all possible combinations are assigned in nodes)
     #   
+
+    # Idea? Order branch queue by (ub - lb) instead of just ub ?
+
+    print(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}")
 
     #  To clear instances solved
     # os.remove("solved_instances.txt") 
@@ -459,7 +468,7 @@ def main():
     instance_files = instance_files[start_from_idx::]
     i = start_from_idx+1
 
-    with open("solved_instances.txt", "w") as out:
+    with open(f"solved_instances_time_{timeLimit}.txt", "w") as out:
         for instance in instance_files:
             print(f"Solving {instance}... #{i}/{len(instance_files)}")
             start = time.time()
@@ -474,7 +483,6 @@ def main():
 
             if optimal:
                 out.write(instance + "\n")
-
 
 if __name__ == "__main__":
     main()
