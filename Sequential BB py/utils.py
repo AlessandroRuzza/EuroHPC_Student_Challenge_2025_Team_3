@@ -36,7 +36,8 @@ def parse_col_file(file_path):
                 parts = line.split()
                 if len(parts) == 3:
                     node1, node2 = int(parts[1])-1, int(parts[2])-1 # files count nodes from 1, we count from 0
-                    graph.add_edge(node1, node2)
+                    if node1 != node2:
+                        graph.add_edge(node1, node2)
                 continue
 
     return graph

@@ -1,8 +1,9 @@
-import random
 import time
 import heapq
 from copy import deepcopy
 from collections import defaultdict
+from os import listdir
+from os.path import isfile, join
 
 from algorithms.maxclique_heuristics import *
 from algorithms.coloring_heuristics import *
@@ -129,6 +130,7 @@ class BranchAndBoundNode:
 # lb - lower bound
 # ub - upper bound
 def branch_and_bound(graph, time_limit=10000):
+    start_time = time.time()
     n = len(graph)
     initial_uf = UnionFind(n)
     initial_edges = set()
@@ -143,6 +145,7 @@ def branch_and_bound(graph, time_limit=10000):
 
     current_ub, node = None, None
     current_lb = None
+    is_over_time_limit = False
 
     while queue:
 
@@ -158,6 +161,10 @@ def branch_and_bound(graph, time_limit=10000):
             best_lb = current_lb
         if node.lb == best_ub:
             break
+
+        if (time.time() - start_time) > time_limit:
+            is_over_time_limit = True
+            continue
 
         u, v = graph.find_pair(node.union_find, node.added_edges)
         if u is None:  # No pair found
@@ -207,11 +214,11 @@ def branch_and_bound(graph, time_limit=10000):
             heapq.heappush(queue, (ub2, BranchAndBoundNode(uf2, edges2, lb2, ub2)))
         
     bestColoring = graph.find_coloring(node.union_find, node.added_edges)
-    return best_ub, bestColoring
+    return best_ub, bestColoring, is_over_time_limit
 
 ##########################################################################################
 
-def solve_instance(filename):
+def solve_instance(filename, timeLimit):
     graph = parse_col_file(filename)
 
     # Set up algorithms
@@ -219,12 +226,55 @@ def solve_instance(filename):
     graph.set_clique_algorithm(DLS())
     graph.set_branching_strategy(DegreeBranchingStrategy())
 
-    best_ub, bestColoring = branch_and_bound(graph)
+    best_ub, bestColoring, isOverTimeLimit = branch_and_bound(graph, timeLimit)
+    isValid = graph.validate(bestColoring)
     print(f"Best UB = {best_ub}")
-    print(f"Is valid? {graph.validate(bestColoring)}")
+    print(f"Is valid? {isValid}")
+    print(f"Passed time limit? {isOverTimeLimit}")
+
+    return isValid and not isOverTimeLimit
 
 def main():
-    solve_instance("instances/anna.col")
+    instance_files = [join("./instances/", f) for f in listdir("./instances/") if isfile(join("./instances/", f))]
+    # Sort by file size (bigger graphs take more time)
+    instance_files = sorted(instance_files, key=lambda f: (os.stat(f).st_size))
+
+    badInstances = ("myciel")
+    for bad in badInstances:
+        instance_files = [f for f in instance_files if not f.startswith(f"./instances/{bad}")]
+
+    # longest instances: 
+    #   fpsol2  (27.7s)
+    #   inithx  (>10k s)
+    #   all "myciel*" instances solved to optimality, but the lb is never improved (due to maxClique = 2, chromatic number > 2)
+    #       so they keep running until the time limit (or all possible combinations are assigned in nodes)
+    #   
+
+    #  To clear instances solved
+    # os.remove("solved_instances.txt") 
+
+    start_from_idx = 0
+    delay = 2
+    timeLimit = 10000
+
+    instance_files = instance_files[start_from_idx::]
+    i = start_from_idx+1
+
+    with open("solved_instances.txt", "w") as out:
+        for instance in instance_files:
+            print(f"Solving {instance}... #{i}/{len(instance_files)}")
+            start = time.time()
+            optimal = solve_instance(instance, timeLimit)
+            elapsed = time.time() - start
+            print(f"Time elapsed: {elapsed}s")
+
+            print(f"Waiting {delay} secs to show result.")
+            time.sleep(delay)
+            print()
+            i+=1
+
+            if optimal:
+                out.write(instance + "\n")
 
 
 if __name__ == "__main__":
