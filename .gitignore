@@ -6,6 +6,22 @@ __pycache__/
 # C extensions
 *.so
 
+# File outputs
+**/build/
+**/*.exe
+**/*.graph
+*.graph
+**/graph.png
+**/results/
+solved_instances*.txt
+
+# Local Libs
+Libraries/
+
+# VS Code
+.vscode/
+**/.vscode/
+
 # Distribution / packaging
 .Python
 build/
