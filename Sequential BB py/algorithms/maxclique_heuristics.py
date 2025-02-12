@@ -59,7 +59,7 @@ class DLS(MaxCliqueHeuristic):
     def __init__(self, max_steps=100, penalty_delay=1):
         self.max_steps = max_steps
         self.penalty_delay = penalty_delay
-        self.penalties = {v: 0 for v in range(graph.num_nodes)}
+        self.penalties = []
 
     def find_max_clique(self, graph, union_find, added_edges):
         """
@@ -139,7 +139,8 @@ class DLSwithColors(MaxCliqueHeuristic):
     def __init__(self, max_steps=100, penalty_delay=1):
         self.max_steps = max_steps
         self.penalty_delay = penalty_delay
-        self.penalties = {v: 0 for v in range(graph.num_nodes)}
+        self.penalties = []
+        
 
     def find_max_clique(self, graph, union_find, added_edges):
         """

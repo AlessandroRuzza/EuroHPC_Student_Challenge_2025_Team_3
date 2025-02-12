@@ -2,7 +2,7 @@ import time
 import heapq
 from copy import deepcopy
 from collections import defaultdict
-from os import listdir
+from os import listdir, stat
 from os.path import isfile, join
 
 from algorithms.maxclique_heuristics import *
@@ -221,13 +221,39 @@ def branch_and_bound(graph, time_limit=10000):
 def solve_instance(filename, timeLimit):
     graph = parse_col_file(filename)
 
+    # Configuration parameters
+    solver_name = "sequential_DSatur_DLS_DegreeBranching"
+    solver_version = "v1.0.1"
+
     # Set up algorithms
     graph.set_coloring_algorithm(DSatur())
     graph.set_clique_algorithm(DLS())
     graph.set_branching_strategy(DegreeBranchingStrategy())
 
+    # MPI parameters
+    num_workers = 5
+    num_cores = 6
+
+
+    start_time = time.time()
     best_ub, bestColoring, isOverTimeLimit = branch_and_bound(graph, timeLimit)
+    wall_time = int(time.time() - start_time)
+
     isValid = graph.validate(bestColoring)
+
+    
+    # Output results
+    output_results(
+        instance_name=filename,
+        solver_name=solver_name,
+        solver_version=solver_version,
+        num_workers=num_workers,
+        num_cores=num_cores,
+        wall_time=wall_time,
+        time_limit=timeLimit,
+        graph=graph,
+        coloring=bestColoring
+    )
     print(f"Best UB = {best_ub}")
     print(f"Is valid? {isValid}")
     print(f"Passed time limit? {isOverTimeLimit}")
@@ -237,7 +263,7 @@ def solve_instance(filename, timeLimit):
 def main():
     instance_files = [join("./instances/", f) for f in listdir("./instances/") if isfile(join("./instances/", f))]
     # Sort by file size (bigger graphs take more time)
-    instance_files = sorted(instance_files, key=lambda f: (os.stat(f).st_size))
+    instance_files = sorted(instance_files, key=lambda f: (stat(f).st_size))
 
     badInstances = ("myciel")
     for bad in badInstances:
