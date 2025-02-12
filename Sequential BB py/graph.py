@@ -320,6 +320,8 @@ def branch_and_bound(graph, time_limit=10000):
     current_lb = None
     is_over_time_limit = False
 
+    print(f"Starting UB, LB:  {ub, lb}")
+
     while queue:
 
         current_ub, node = heapq.heappop(queue)
@@ -401,7 +403,7 @@ def solve_instance(filename, timeLimit):
     # Set up algorithms
     graph.set_coloring_algorithm(DSatur())
     graph.set_clique_algorithm(DLS())
-    graph.set_branching_strategy(DegreeBranchingStrategy())
+    graph.set_branching_strategy(SaturationBranchingStrategy())
 
     # MPI parameters
     num_workers = 5
@@ -426,6 +428,7 @@ def solve_instance(filename, timeLimit):
         graph=graph,
         coloring=bestColoring
     )
+
     if best_lb == best_ub:
         print(f"Optimal solution! Chromatic number = {best_ub}")
     else:
