@@ -41,7 +41,11 @@ class DSatur(ColoringHeuristic):
             uncolored_nodes.remove(best_node)
 
             # Determine available colors
-            neighbor_colors = set(coloring[neighbor] for neighbor in graph.adj_list[best_node] if coloring[neighbor] >= 0)
+            neighbor_colors = list(coloring[neighbor] for neighbor in graph.adj_list[best_node] if coloring[neighbor] >= 0)
+            # Add neighbors according to added_edges
+            neighbor_colors.append(coloring[n] for n,b in added_edges if b == best_node if coloring[n] >= 0)
+            neighbor_colors.append(coloring[n] for a,n in added_edges if a == best_node if coloring[n] >= 0)
+            neighbor_colors = set(neighbor_colors) # remove duplicates
             color = 0
             while color in neighbor_colors:
                 color += 1
