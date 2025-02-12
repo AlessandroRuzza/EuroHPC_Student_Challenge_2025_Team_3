@@ -26,28 +26,76 @@ from utilities.utils import parse_col_file, output_results
 
 
 class UnionFind:
+    """
+    Data structure to keep track of vertex colors
+    """
     def __init__(self, size):
+        """
+        Constructor for the UnionFind class
+
+        :param size: Size of the UnionFind data structure
+        :type size: int
+        """
         self.parent = list(range(size))
 
     def find(self, x):
+        """
+        Find the color of the node
+
+        :param x: Node to find the color of
+        :type x: int
+        :return: Color of the node
+        :rtype: int
+        """
         if self.parent[x] != x:
             self.parent[x] = self.find(self.parent[x])
         return self.parent[x]
 
     def union(self, x, y):
+        """
+        Make the colors of two nodes the same
+
+        :param x: First node
+        :type x: int
+        :param y: Second node
+        :type y: int
+        """
         fx = self.find(x)
         fy = self.find(y)
         if fx != fy:
             self.parent[fy] = fx
 
 class BranchAndBoundNode:
+    """
+    Node for the branch and bound algorithm
+    """
     def __init__(self, union_find, added_edges, lb, ub):
+        """
+        Constructor for the BranchAndBoundNode class
+
+        :param union_find: Data structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: Data structure to keep track of vertices with different colors
+        :type added_edges: set
+        :param lb: Lower bound of the node
+        :type lb: int
+        :param ub: Upper bound of the node
+        :type ub: int
+        """
         self.union_find = union_find
         self.added_edges = set(added_edges)
         self.lb = lb
         self.ub = ub
 
     def __lt__(self, other):
+        """
+        Compare two nodes based on their upper bound
+
+        :param other: Other node to compare to
+        :type other: BranchAndBoundNode
+        :return: True if the current node has a smaller upper bound, False otherwise
+        :rtype: bool
+        """
         return self.ub < other.ub
 
 ##########################################################################################

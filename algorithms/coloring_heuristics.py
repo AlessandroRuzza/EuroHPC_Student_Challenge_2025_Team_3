@@ -2,15 +2,31 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 
 class ColoringHeuristic(ABC):
+    """
+    Abstract base class for coloring heuristics
+    """
     @abstractmethod
     def find_coloring(self, graph, union_find, added_edges):
         """
         Returns a coloring of the graph as a list where index is node and value is color
+
+        :param graph: Graph to color
+        :type graph: Graph
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: List of edges to add to the graph
+        :type added_edges: list
+        :return: List of colors
+        :rtype: list
         """
         pass
 
 
 class DSatur(ColoringHeuristic):
+    """
+    DSatur coloring heuristic
+    """
+
     def find_coloring(self, graph, union_find, added_edges):
         coloring = [-1] * len(graph)
 
