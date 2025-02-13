@@ -89,8 +89,7 @@ def branch_and_bound_parallel(graph, time_limit=10000):
             edges2 = deepcopy(node.added_edges)
             ru = uf2.find(u)
             rv = uf2.find(v)
-            if (ru, rv) not in edges2 and (rv, ru) not in edges2:
-                edges2.add((ru, rv))
+            edges2.add((ru, rv))
             lb2 = len(graph.find_max_clique(uf2, edges2))
             ub2 = len(set(graph.find_coloring(uf2, edges2)))
             if lb2 < best_ub:
