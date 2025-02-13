@@ -95,7 +95,7 @@ def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
     graph.set_coloring_algorithm(DSatur())
-    graph.set_clique_algorithm(DLS())
+    graph.set_clique_algorithm(DLSIncreasingPenalty())
     graph.set_branching_strategy(DegreeBranchingStrategy())
 
     start_time = time.time()
