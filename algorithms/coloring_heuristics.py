@@ -27,22 +27,22 @@ class DSatur(ColoringHeuristic):
     DSatur coloring heuristic
     """
 
-    def find_coloring(self, graph, union_find, added_edges):
+    def find_coloring(self, graph, uf, added_edges):
         coloring = [-1] * len(graph)
 
         # Normalise color ids in unionFind (by calling find on merged nodes)
         # This results in the roots of those unions not being colored
         for x in range(len(graph)):
-            if union_find.find(x) == x:
+            if uf.find(x) == x:
                 coloring[x] = -1
             else:
-                coloring[x] = union_find.find(x)
+                coloring[x] = uf.find(x)
 
         # Color the roots
         # The only nodes with -1 will be those that were never merged in unionFind
         for x in range(len(graph)):
             if coloring[x] != -1:
-                coloring[union_find.find(x)] = union_find.find(x)
+                coloring[uf.find(x)] = uf.find(x)
 
         saturation = [0] * len(graph)
         for node in range(len(graph)):
@@ -59,8 +59,8 @@ class DSatur(ColoringHeuristic):
             # Determine available colors
             neighbor_colors = list(coloring[neighbor] for neighbor in graph.adj_list[best_node] if coloring[neighbor] >= 0)
             # Add neighbors according to added_edges
-            neighbor_colors.append(coloring[n] for n,b in added_edges if b == best_node if coloring[n] >= 0)
-            neighbor_colors.append(coloring[n] for a,n in added_edges if a == best_node if coloring[n] >= 0)
+            neighbor_colors.append(coloring[n] for n,b in added_edges if uf.find(b) == uf.find(best_node) if coloring[n] >= 0)
+            neighbor_colors.append(coloring[n] for a,n in added_edges if uf.find(a) == uf.find(best_node) if coloring[n] >= 0)
             neighbor_colors = set(neighbor_colors) # remove duplicates
             color = 0
             while color in neighbor_colors:

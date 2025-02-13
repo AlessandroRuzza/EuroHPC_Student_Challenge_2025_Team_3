@@ -1,14 +1,22 @@
 from mpi4py import MPI
 import time
+from os import listdir, stat
+from os.path import isfile, join
 
 import sys
 from pathlib import Path
 
 current_dir = Path(__file__).resolve().parent
+utilities_dir = current_dir.parent / 'utilities'
+sys.path.append(str(utilities_dir.parent))
+
+from utilities.utils import parse_col_file, output_results
+
+current_dir = Path(__file__).resolve().parent
 graph_dir = current_dir.parent / 'graph'
 sys.path.append(str(graph_dir.parent))
 
-from graph.graph import *
+from graph.base import *
 
 current_dir = Path(__file__).resolve().parent
 algorithms_dir = current_dir.parent / 'algorithms'
@@ -17,7 +25,6 @@ sys.path.append(str(algorithms_dir.parent))
 from algorithms.maxclique_heuristics import *
 from algorithms.coloring_heuristics import *
 from algorithms.branching_strategies import *
-
 
 from collections import defaultdict
 from copy import deepcopy
@@ -82,7 +89,8 @@ def branch_and_bound_parallel(graph, time_limit=10000):
             edges2 = deepcopy(node.added_edges)
             ru = uf2.find(u)
             rv = uf2.find(v)
-            edges2.add((ru, rv))
+            if (ru, rv) not in edges2 and (rv, ru) not in edges2:
+                edges2.add((ru, rv))
             lb2 = len(graph.find_max_clique(uf2, edges2))
             ub2 = len(set(graph.find_coloring(uf2, edges2)))
             if lb2 < best_ub:
@@ -96,7 +104,7 @@ def solve_instance_parallel(filename, time_limit):
 
     graph.set_coloring_algorithm(DSatur())
     graph.set_clique_algorithm(DLSIncreasingPenalty())
-    graph.set_branching_strategy(DegreeBranchingStrategy())
+    graph.set_branching_strategy(SaturationBranchingStrategy())
 
     start_time = time.time()
     chromatic_number = branch_and_bound_parallel(graph, time_limit)
@@ -104,6 +112,8 @@ def solve_instance_parallel(filename, time_limit):
 
     if rank == 0:
         print(f"Chromatic number for {filename}: {chromatic_number}")
+        print(f"Time: {int(wall_time/60)}m {wall_time%60}s")
+        print() # Spacing
         output_results(
             instance_name=filename,
             solver_name="MPI_DSatur_DLS",
@@ -118,10 +128,32 @@ def solve_instance_parallel(filename, time_limit):
 
 
 def main():
-    instance_files = ["../instances/jean.col", "../instances/queen5_5.col"]
+    if rank==0:
+        print(f"MPI size = {size}")
+
+    instance_root = "../instances/"
+
+    # Manually specify instances
+    instances = ["jean.col", "queen5_5.col", "queen6_6.col", "queen7_7.col"]
+    
+    # Or run all instances in the folder
+    # instances = listdir(instance_root)
+
+    # Complete path of instances
+    instance_files = [join(instance_root, f) for f in instances if isfile(join(instance_root, f))]
+    # Sort by file size (bigger graphs take more time)
+    instance_files = sorted(instance_files, key=lambda f: (stat(f).st_size))
+
+    badInstances = ("myciel") # myciel graphs ub lb never converge (even for optimal ub)
+    for bad in badInstances:
+        instance_files = [f for f in instance_files if not f.startswith(instance_root + bad)]
+
+    print(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
+    
     time_limit = 10000
 
     for instance in instance_files:
+        print(f"Solving {instance}...")
         solve_instance_parallel(instance, time_limit)
 
 
