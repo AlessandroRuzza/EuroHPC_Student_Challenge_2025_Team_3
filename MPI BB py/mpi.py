@@ -40,12 +40,29 @@ def branch_node(graph, node):
     childNodes = []
 
     # Branch 1: Same color
-    uf1 = deepcopy(node.union_find)
-    uf1.union(u, v)
-    edges1 = deepcopy(node.added_edges)
-    lb1 = len(graph.find_max_clique(uf1, edges1))
-    ub1 = len(set(graph.find_coloring(uf1, edges1)))
-    childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1))
+    color_u = node.union_find.find(u)
+    color_v = node.union_find.find(v)
+    doBranch1 = True
+    
+    for neighbor in graph.adj_list[u]:
+        color_n = node.union_find.find(neighbor)
+        if(color_n == color_v):
+            doBranch1 = False
+            break
+
+    for neighbor in graph.adj_list[v]:
+        color_n = node.union_find.find(neighbor)
+        if(color_n == color_u or not doBranch1):
+            doBranch1 = False
+            break
+
+    if doBranch1:
+        uf1 = deepcopy(node.union_find)
+        uf1.union(u, v)
+        edges1 = deepcopy(node.added_edges)
+        lb1 = len(graph.find_max_clique(uf1, edges1))
+        ub1 = len(set(graph.find_coloring(uf1, edges1)))
+        childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1))
 
     # Branch 2: Different color
     uf2 = deepcopy(node.union_find)
@@ -73,28 +90,26 @@ def handle_slave(slaveRank,
             timeoutEvent.set()
             break
 
-        queueLock.acquire()
-        while not queue:
-            queueLock.wait(timeout=30)
-            # Timeout to prevent getting stuck when only a few nodes are needed 
-            if timeoutEvent.is_set() or optimalEvent.is_set():
-                return
+        with queueLock: 
+            while not queue:
+                queueLock.wait(timeout=30)
+                # Timeout to prevent getting stuck when only a few nodes are needed 
+                if timeoutEvent.is_set() or optimalEvent.is_set():
+                    return
 
-        node = queue.pop()
-        queueLock.release()
+            node = queue.pop()
         
         pruneNode = False
         optimalFound = False
 
-        best_ub_lock.acquire()
-        if node.lb > best_ub[0]:
-            pruneNode = True
-        if node.ub < best_ub[0]:
-            print(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60}s")
-            best_ub[0] = node.ub
-        if node.lb == best_ub[0]:
-            optimalFound = True
-        best_ub_lock.release()
+        with best_ub_lock:
+            if node.lb > best_ub[0]:
+                pruneNode = True
+            if node.ub < best_ub[0]:
+                print(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60}s")
+                best_ub[0] = node.ub
+            if node.lb == best_ub[0]:
+                optimalFound = True
 
         if pruneNode: continue
         if optimalFound:
@@ -109,14 +124,12 @@ def handle_slave(slaveRank,
         if childNodes is None:
             continue
 
-        queueLock.acquire()
-        for n in childNodes:
-            queue.append(n)
-        queueLock.notify(len(childNodes))
-        queueLock.release()
+        with queueLock: 
+            for n in childNodes:
+                queue.append(n)
+            queueLock.notify(len(childNodes))
 
     return None
-
 
 def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], best_ub, start_time, time_limit=10000):
     # Run threads that interface with each slave (ranks [1, 2, 3, ..., size-1] )
