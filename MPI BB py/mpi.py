@@ -27,11 +27,18 @@ from algorithms.branching_strategies import *
 from collections import defaultdict
 from copy import deepcopy
 
+# Debug flag
+debug = True
+
 # MPI Setup
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 nodesPerSlave = 5
+
+
+def printDebug(str):
+    if debug: print(str)
 
 def branch_node(graph, node):
     u, v = graph.find_pair(node.union_find, node.added_edges)
@@ -77,14 +84,14 @@ def branch_node(graph, node):
 
     return childNodes
 
-def handle_slave(slaveRank, 
+def handle_slave(graph, slaveRank, 
                  queueLock: Condition, queue: list[BranchAndBoundNode],
-                 best_ub_lock: Condition, best_ub, 
+                 best_ub_lock: Condition, best_ub, best_coloring: list,
                  optimalEvent: Event, timeoutEvent: Event, 
                  start_time, time_limit):
     while True:
         if timeoutEvent.is_set() or optimalEvent.is_set():
-            return
+            break
 
         elapsed = time.time() - start_time
         if elapsed > time_limit:
@@ -93,11 +100,13 @@ def handle_slave(slaveRank,
         
         with queueLock: 
             while not queue:
-                queueLock.wait(timeout=30)
+                queueLock.wait(timeout=1)
                 # Timeout to prevent getting stuck when only a few nodes are needed 
                 if timeoutEvent.is_set() or optimalEvent.is_set():
-                    return
-            
+                    break
+
+            if timeoutEvent.is_set() or optimalEvent.is_set():
+                break
             numNodes = min(len(queue), nodesPerSlave)
             nodes = []
             for _ in range(numNodes):
@@ -112,6 +121,8 @@ def handle_slave(slaveRank,
                     pruneNodes.append(node)
                 if node.ub < best_ub[0]:
                     print(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
+                    best_coloring.clear()
+                    best_coloring.extend(graph.find_coloring(node.union_find, node.added_edges))
                     best_ub[0] = node.ub
                 if node.lb == best_ub[0]:
                     optimalFound = True
@@ -130,7 +141,9 @@ def handle_slave(slaveRank,
         childNodes = comm.recv(source=slaveRank)
 
         if childNodes == "Terminated":
-            break
+            printDebug(f"Slave Handler {slaveRank} received termination.")
+            return
+        
         if childNodes is None:
             continue
 
@@ -139,11 +152,18 @@ def handle_slave(slaveRank,
                 queue.append(n)
             queueLock.notify(len(childNodes))
 
+    # Ensure to kill slave before terminating thread
+    comm.send("Kill", slaveRank)
+    response = comm.recv(source=slaveRank)
+    while response != "Terminated":
+        response = comm.recv(source=slaveRank)
+    printDebug(f"Slave Handler {slaveRank} received termination.")
     return None
 
-def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], best_ub, start_time, time_limit=10000):
+def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], 
+                            best_ub, best_coloring, 
+                            start_time, time_limit=10000):
     # Run threads that interface with each slave (ranks [1, 2, 3, ..., size-1] )
-    # Using one slave for now (no multithread)
     slaveHandlers: list[Thread] = []
     queueLock = Condition()
     best_ub_lock = Lock()
@@ -151,18 +171,18 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], best_
     optimalEvent = Event()
     timeoutEvent = Event()
     for slaveRank in range(1, size):
-        slaveHandlers.append(Thread(daemon=True, target=handle_slave, args=(slaveRank, queueLock,queue, best_ub_lock,best_ub, optimalEvent,timeoutEvent, start_time,time_limit)))
+        slaveHandlers.append(Thread(daemon=True, target=handle_slave, args=(graph,slaveRank, queueLock,queue, best_ub_lock,best_ub,best_coloring, optimalEvent,timeoutEvent, start_time,time_limit)))
 
     for slave in slaveHandlers:
         slave.start()
     optimalEvent.wait(timeout=time_limit)     # First slave handler that finds an optimal node will notify this lock
 
-    print("Returning, terminating slaves.")
-    for slave in range(1, size):
-        comm.send("Kill", slave)
+    printDebug("Returning, terminating slaves.")
+    for slave in slaveHandlers:
+        slave.join() # Ensure all threads terminated (implies all slaves terminated as well)
     
-    # Run one thread that solves nodes in this process (to not waste resources)
-    return best_ub[0]
+    # Run one thread that solves nodes in this process? (to not waste resources)
+    return best_ub[0], best_coloring
 
 def slave_branch_and_bound(graph):
     while True:
@@ -170,6 +190,7 @@ def slave_branch_and_bound(graph):
         nodes = comm.recv(source=0)
         if nodes == "Kill":
             comm.send("Terminated", 0)
+            printDebug(f"Slave {rank} sent termination.")
             return
         
         childNodes = []
@@ -189,7 +210,8 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         initial_edges = set()
 
         lb = len(graph.find_max_clique(initial_uf, initial_edges))
-        ub = len(set(graph.find_coloring(initial_uf, initial_edges)))
+        initial_coloring = graph.find_coloring(initial_uf, initial_edges)
+        ub = len(set(initial_coloring))
 
         # Shared best upper bound
         best_ub = ub
@@ -197,12 +219,10 @@ def branch_and_bound_parallel(graph, time_limit=10000):
 
         print(f"Starting (UB, LB) = ({ub}, {lb})")
         queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub))
-        best_ub = master_branch_and_bound(graph, queue, best_ub, start_time, time_limit)
-        return best_ub
+        return master_branch_and_bound(graph, queue, best_ub, initial_coloring, start_time, time_limit)
     else:
         slave_branch_and_bound(graph)
-        return None
-
+        return None, None
 
 def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
@@ -212,12 +232,15 @@ def solve_instance_parallel(filename, time_limit):
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     start_time = time.time()
-    chromatic_number = branch_and_bound_parallel(graph, time_limit)
+    chromatic_number, best_coloring = branch_and_bound_parallel(graph, time_limit)
     wall_time = int(time.time() - start_time)
 
     if rank == 0:
         print(f"Chromatic number for {filename}: {chromatic_number}")
         print(f"Time: {int(wall_time/60)}m {wall_time%60}s")
+        print(f"Is Valid? {graph.validate(best_coloring)}")
+        if wall_time >= time_limit:
+            print("TIMED OUT.")
         print() # Spacing
         output_results(
             instance_name=filename,
@@ -228,7 +251,7 @@ def solve_instance_parallel(filename, time_limit):
             wall_time=wall_time,
             time_limit=time_limit,
             graph=graph,
-            coloring=graph.find_coloring(UnionFind(len(graph)), set())
+            coloring=best_coloring
         )
 
 def printMaster(str):
@@ -262,6 +285,7 @@ def main():
     for instance in instance_files:
         printMaster(f"Solving {instance}...")
         solve_instance_parallel(instance, time_limit)
+        comm.barrier() # Ensure all ranks are moving to next instance
 
 
 if __name__ == "__main__":
