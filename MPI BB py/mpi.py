@@ -3,7 +3,7 @@ import time
 from os import listdir, stat
 from os.path import isfile, join
 
-from threading import Thread, Condition
+from threading import Thread, Condition, Event, Lock
 
 import sys
 from pathlib import Path
@@ -59,14 +59,26 @@ def branch_node(graph, node):
 
     return childNodes
 
-def handle_slave(slaveRank, queueLock: Condition, best_ub_lock: Condition, queue: list[BranchAndBoundNode], best_ub, start_time, time_limit):
+def handle_slave(slaveRank, 
+                 queueLock: Condition, queue: list[BranchAndBoundNode],
+                 best_ub_lock: Condition, best_ub, 
+                 optimalEvent: Event, timeoutEvent: Event, 
+                 start_time, time_limit):
     while True:
-        if time.time() - start_time > time_limit:
+        if timeoutEvent.is_set() or optimalEvent.is_set():
+            return
+
+        elapsed = time.time() - start_time
+        if elapsed > time_limit:
+            timeoutEvent.set()
             break
 
         queueLock.acquire()
         while not queue:
-            queueLock.wait()
+            queueLock.wait(timeout=30)
+            # Timeout to prevent getting stuck when only a few nodes are needed 
+            if timeoutEvent.is_set() or optimalEvent.is_set():
+                return
 
         node = queue.pop()
         queueLock.release()
@@ -78,15 +90,16 @@ def handle_slave(slaveRank, queueLock: Condition, best_ub_lock: Condition, queue
         if node.lb > best_ub[0]:
             pruneNode = True
         if node.ub < best_ub[0]:
-            print(f"Slave {slaveRank} improved UB = {node.ub}")
+            print(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60}s")
             best_ub[0] = node.ub
         if node.lb == best_ub[0]:
-            best_ub_lock.notify_all()
             optimalFound = True
         best_ub_lock.release()
 
         if pruneNode: continue
-        if optimalFound: break
+        if optimalFound:
+            optimalEvent.set()
+            break
 
         comm.send(node, slaveRank)
         childNodes = comm.recv(source=slaveRank)
@@ -110,30 +123,27 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], best_
     # Using one slave for now (no multithread)
     slaveHandlers: list[Thread] = []
     queueLock = Condition()
-    best_ub_lock = Condition()
+    best_ub_lock = Lock()
     best_ub = [best_ub,]
+    optimalEvent = Event()
+    timeoutEvent = Event()
     for slaveRank in range(1, size):
-        slaveHandlers.append(Thread(target=handle_slave, args=(slaveRank, queueLock, best_ub_lock, queue, best_ub, start_time, time_limit)))
+        slaveHandlers.append(Thread(daemon=True, target=handle_slave, args=(slaveRank, queueLock,queue, best_ub_lock,best_ub, optimalEvent,timeoutEvent, start_time,time_limit)))
 
-    best_ub_lock.acquire()
     for slave in slaveHandlers:
         slave.start()
-    best_ub_lock.wait(timeout=time_limit)     # First slave handler that finds an optimal node will notify this lock
-    best_ub_lock.release()
+    optimalEvent.wait(timeout=time_limit)     # First slave handler that finds an optimal node will notify this lock
 
     print("Returning, terminating slaves.")
     for slave in range(1, size):
         comm.send("Kill", slave)
-
-    for slaveHandler in slaveHandlers:
-        slaveHandler.join()
     
     # Run one thread that solves nodes in this process (to not waste resources)
     return best_ub[0]
 
 def slave_branch_and_bound(graph):
-    # Wait for work from master
     while True:
+        # Wait for work from master
         node = comm.recv(source=0)
 
         if type(node) is BranchAndBoundNode:
@@ -146,7 +156,7 @@ def slave_branch_and_bound(graph):
             return
 
     # We could keep running nodes until threshold len(queue_loc) ?
-    # This could reduce message overhead
+    # This would greatly reduce message overhead
 
 def branch_and_bound_parallel(graph, time_limit=10000):
     if rank==0:
@@ -168,7 +178,7 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         return best_ub
     else:
         slave_branch_and_bound(graph)
-        return
+        return None
 
 
 def solve_instance_parallel(filename, time_limit):
@@ -208,10 +218,10 @@ def main():
     instance_root = "../instances/"
 
     # Manually specify instances
-    instances = ["queen5_5.col",]
+    # instances = ["queen5_5.col",]
     
     # Or run all instances in the folder
-    # instances = listdir(instance_root)
+    instances = listdir(instance_root)
 
     # Complete path of instances
     instance_files = [join(instance_root, f) for f in instances if isfile(join(instance_root, f))]
