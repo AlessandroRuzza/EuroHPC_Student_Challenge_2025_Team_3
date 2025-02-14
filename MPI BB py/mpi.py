@@ -31,6 +31,7 @@ from copy import deepcopy
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
+nodesPerSlave = 5
 
 def branch_node(graph, node):
     u, v = graph.find_pair(node.union_find, node.added_edges)
@@ -89,34 +90,43 @@ def handle_slave(slaveRank,
         if elapsed > time_limit:
             timeoutEvent.set()
             break
-
+        
         with queueLock: 
             while not queue:
                 queueLock.wait(timeout=30)
                 # Timeout to prevent getting stuck when only a few nodes are needed 
                 if timeoutEvent.is_set() or optimalEvent.is_set():
                     return
-
-            node = queue.pop()
+            
+            numNodes = min(len(queue), nodesPerSlave)
+            nodes = []
+            for _ in range(numNodes):
+                nodes.append(queue.pop(0))
         
-        pruneNode = False
+        pruneNodes = []
         optimalFound = False
 
         with best_ub_lock:
-            if node.lb > best_ub[0]:
-                pruneNode = True
-            if node.ub < best_ub[0]:
-                print(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60}s")
-                best_ub[0] = node.ub
-            if node.lb == best_ub[0]:
-                optimalFound = True
+            for node in nodes:
+                if node.lb >= best_ub[0]:
+                    pruneNodes.append(node)
+                if node.ub < best_ub[0]:
+                    print(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
+                    best_ub[0] = node.ub
+                if node.lb == best_ub[0]:
+                    optimalFound = True
+                    break
 
-        if pruneNode: continue
         if optimalFound:
             optimalEvent.set()
             break
 
-        comm.send(node, slaveRank)
+        for node in pruneNodes:
+            nodes.remove(node)
+
+        if not nodes: continue
+        
+        comm.send(nodes, slaveRank)
         childNodes = comm.recv(source=slaveRank)
 
         if childNodes == "Terminated":
@@ -157,19 +167,19 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], best_
 def slave_branch_and_bound(graph):
     while True:
         # Wait for work from master
-        node = comm.recv(source=0)
-
-        if type(node) is BranchAndBoundNode:
-            # Run node
-            childNodes = branch_node(graph, node)
-            # Send back results
-            comm.send(childNodes, 0)
-        elif node == "Kill":
+        nodes = comm.recv(source=0)
+        if nodes == "Kill":
             comm.send("Terminated", 0)
             return
+        
+        childNodes = []
+        for node in nodes:
+            # Run node
+            for child in branch_node(graph, node):
+                childNodes.append(child)
 
-    # We could keep running nodes until threshold len(queue_loc) ?
-    # This would greatly reduce message overhead
+        # Send back results
+        comm.send(childNodes, 0)
 
 def branch_and_bound_parallel(graph, time_limit=10000):
     if rank==0:
