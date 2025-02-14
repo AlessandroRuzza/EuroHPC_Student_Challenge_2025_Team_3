@@ -54,17 +54,20 @@ def output_results(instance_name, solver_name, solver_version, num_workers, num_
     
     with open(output_file, 'w') as f:
         f.write(f"problem_instance_file_name: {instance_file}.col\n")
-        f.write(f"cmd_line: mpirun -n {num_workers} {solver_name} {instance_file}\n")
+        f.write(f"cmd_line: mpirun -n {num_workers} {solver_name} {instance_file}.col\n")
         f.write(f"solver_version: {solver_version}\n")
         f.write(f"number_of_vertices: {graph.num_nodes}\n")
-        f.write(f"number_of_edges: {sum(len(neighbors) for neighbors in graph.adj_list.values()) // 2}\n")
+        f.write(f"number_of_edges: {sum(len(neighbors) for neighbors in graph.adj_list.values())}\n")
         f.write(f"time_limit_sec: {time_limit}\n")
         f.write(f"number_of_worker_processes: {num_workers}\n")
         f.write(f"number_of_cores_per_worker: {num_cores}\n")
         f.write(f"wall_time_sec: {wall_time}\n")
         f.write(f"is_within_time_limit: {wall_time <= time_limit}\n")
-        f.write(f"number_of_colors: {max(coloring) + 1}\n")
+
+        # Normalise color ids from 0 to num_colors-1
+        coloring = [sorted(list(set(coloring))).index(c) for c in coloring]
+        f.write(f"number_of_colors: {len(set(coloring))}\n")
         
         # Write vertex-color assignments
         for vertex in range(graph.num_nodes):
-            f.write(f"{vertex} {coloring[vertex]}\n")
+            f.write(f"{vertex+1} {coloring[vertex]}\n")
