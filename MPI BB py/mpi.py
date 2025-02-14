@@ -8,19 +8,15 @@ from pathlib import Path
 
 current_dir = Path(__file__).resolve().parent
 utilities_dir = current_dir.parent / 'utilities'
+graph_dir = current_dir.parent / 'graph'
+algorithms_dir = current_dir.parent / 'algorithms'
 sys.path.append(str(utilities_dir.parent))
+sys.path.append(str(graph_dir.parent))
+sys.path.append(str(algorithms_dir.parent))
 
 from utilities.utils import parse_col_file, output_results
 
-current_dir = Path(__file__).resolve().parent
-graph_dir = current_dir.parent / 'graph'
-sys.path.append(str(graph_dir.parent))
-
 from graph.base import *
-
-current_dir = Path(__file__).resolve().parent
-algorithms_dir = current_dir.parent / 'algorithms'
-sys.path.append(str(algorithms_dir.parent))
 
 from algorithms.maxclique_heuristics import *
 from algorithms.coloring_heuristics import *
