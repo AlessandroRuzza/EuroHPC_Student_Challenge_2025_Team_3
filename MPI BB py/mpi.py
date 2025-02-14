@@ -3,6 +3,8 @@ import time
 from os import listdir, stat
 from os.path import isfile, join
 
+from threading import Thread, Condition
+
 import sys
 from pathlib import Path
 
@@ -57,34 +59,77 @@ def branch_node(graph, node):
 
     return childNodes
 
-def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], best_ub, start_time, time_limit=10000):
-    # Run threads that interface with each slave (ranks [1, 2, 3, ..., size-1] )
-    # Using one slave for now (no multithread)
-    while queue:
-        node = queue.pop()
-        
-        if node.lb >= best_ub:
-            continue
-
-        if node.ub < best_ub:
-            best_ub = node.ub
-
-        if node.lb == best_ub:
-            break
-
+def handle_slave(slaveRank, queueLock: Condition, best_ub_lock: Condition, queue: list[BranchAndBoundNode], best_ub, start_time, time_limit):
+    while True:
         if time.time() - start_time > time_limit:
             break
 
-        comm.send(node, 1)
+        queueLock.acquire()
+        while not queue:
+            queueLock.wait()
 
-        childNodes = comm.recv(source=1)
+        node = queue.pop()
+        queueLock.release()
+        
+        pruneNode = False
+        optimalFound = False
+
+        best_ub_lock.acquire()
+        if node.lb > best_ub[0]:
+            pruneNode = True
+        if node.ub < best_ub[0]:
+            print(f"Slave {slaveRank} improved UB = {node.ub}")
+            best_ub[0] = node.ub
+        if node.lb == best_ub[0]:
+            best_ub_lock.notify_all()
+            optimalFound = True
+        best_ub_lock.release()
+
+        if pruneNode: continue
+        if optimalFound: break
+
+        comm.send(node, slaveRank)
+        childNodes = comm.recv(source=slaveRank)
+
+        if childNodes == "Terminated":
+            break
+        if childNodes is None:
+            continue
+
+        queueLock.acquire()
         for n in childNodes:
             queue.append(n)
+        queueLock.notify(len(childNodes))
+        queueLock.release()
 
-    print("Returning, terminating slaves")
-    comm.send("Kill", 1)
+    return None
+
+
+def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], best_ub, start_time, time_limit=10000):
+    # Run threads that interface with each slave (ranks [1, 2, 3, ..., size-1] )
+    # Using one slave for now (no multithread)
+    slaveHandlers: list[Thread] = []
+    queueLock = Condition()
+    best_ub_lock = Condition()
+    best_ub = [best_ub,]
+    for slaveRank in range(1, size):
+        slaveHandlers.append(Thread(target=handle_slave, args=(slaveRank, queueLock, best_ub_lock, queue, best_ub, start_time, time_limit)))
+
+    best_ub_lock.acquire()
+    for slave in slaveHandlers:
+        slave.start()
+    best_ub_lock.wait(timeout=time_limit)     # First slave handler that finds an optimal node will notify this lock
+    best_ub_lock.release()
+
+    print("Returning, terminating slaves.")
+    for slave in range(1, size):
+        comm.send("Kill", slave)
+
+    for slaveHandler in slaveHandlers:
+        slaveHandler.join()
+    
     # Run one thread that solves nodes in this process (to not waste resources)
-    return best_ub
+    return best_ub[0]
 
 def slave_branch_and_bound(graph):
     # Wait for work from master
@@ -96,26 +141,27 @@ def slave_branch_and_bound(graph):
             childNodes = branch_node(graph, node)
             # Send back results
             comm.send(childNodes, 0)
-        elif node == "Kill": 
+        elif node == "Kill":
+            comm.send("Terminated", 0)
             return
 
-    # Keep running nodes until threshold len(queue_loc) ?
+    # We could keep running nodes until threshold len(queue_loc) ?
+    # This could reduce message overhead
 
 def branch_and_bound_parallel(graph, time_limit=10000):
-    start_time = time.time()
-    n = len(graph)
-    initial_uf = UnionFind(n)
-    initial_edges = set()
-
-    lb = len(graph.find_max_clique(initial_uf, initial_edges))
-    ub = len(set(graph.find_coloring(initial_uf, initial_edges)))
-
-    # Shared best upper bound
-    best_ub = comm.allreduce(ub, op=MPI.MIN)
-    queue = []
-    comm.barrier()
-
     if rank==0:
+        start_time = time.time()
+        n = len(graph)
+        initial_uf = UnionFind(n)
+        initial_edges = set()
+
+        lb = len(graph.find_max_clique(initial_uf, initial_edges))
+        ub = len(set(graph.find_coloring(initial_uf, initial_edges)))
+
+        # Shared best upper bound
+        best_ub = ub
+        queue = []
+
         print(f"Starting (UB, LB) = ({ub}, {lb})")
         queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub))
         best_ub = master_branch_and_bound(graph, queue, best_ub, start_time, time_limit)
@@ -161,7 +207,7 @@ def main():
     instance_root = "../instances/"
 
     # Manually specify instances
-    instances = ["miles250.col",]
+    instances = ["queen5_5.col",]
     
     # Or run all instances in the folder
     # instances = listdir(instance_root)
