@@ -30,6 +30,77 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
+def branch_node(graph, node):
+    u, v = graph.find_pair(node.union_find, node.added_edges)
+    if u is None:
+        return None
+    
+    childNodes = []
+
+    # Branch 1: Same color
+    uf1 = deepcopy(node.union_find)
+    uf1.union(u, v)
+    edges1 = deepcopy(node.added_edges)
+    lb1 = len(graph.find_max_clique(uf1, edges1))
+    ub1 = len(set(graph.find_coloring(uf1, edges1)))
+    childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1))
+
+    # Branch 2: Different color
+    uf2 = deepcopy(node.union_find)
+    edges2 = deepcopy(node.added_edges)
+    ru = uf2.find(u)
+    rv = uf2.find(v)
+    edges2.add((ru, rv))
+    lb2 = len(graph.find_max_clique(uf2, edges2))
+    ub2 = len(set(graph.find_coloring(uf2, edges2)))
+    childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2))
+
+    return childNodes
+
+def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], best_ub, start_time, time_limit=10000):
+    # Run threads that interface with each slave (ranks [1, 2, 3, ..., size-1] )
+    # Using one slave for now (no multithread)
+    while queue:
+        node = queue.pop()
+        
+        if node.lb >= best_ub:
+            continue
+
+        if node.ub < best_ub:
+            best_ub = node.ub
+
+        if node.lb == best_ub:
+            break
+
+        if time.time() - start_time > time_limit:
+            break
+
+        comm.send(node, 1)
+
+        childNodes = comm.recv(source=1)
+        for n in childNodes:
+            queue.append(n)
+
+    print("Returning, terminating slaves")
+    comm.send("Kill", 1)
+    # Run one thread that solves nodes in this process (to not waste resources)
+    return best_ub
+
+def slave_branch_and_bound(graph):
+    # Wait for work from master
+    while True:
+        node = comm.recv(source=0)
+
+        if type(node) is BranchAndBoundNode:
+            # Run node
+            childNodes = branch_node(graph, node)
+            # Send back results
+            comm.send(childNodes, 0)
+        elif node == "Kill": 
+            return
+
+    # Keep running nodes until threshold len(queue_loc) ?
+
 def branch_and_bound_parallel(graph, time_limit=10000):
     start_time = time.time()
     n = len(graph)
@@ -42,63 +113,22 @@ def branch_and_bound_parallel(graph, time_limit=10000):
     # Shared best upper bound
     best_ub = comm.allreduce(ub, op=MPI.MIN)
     queue = []
-    if rank == 0:
+    comm.barrier()
+
+    if rank==0:
+        print(f"Starting (UB, LB) = ({ub}, {lb})")
         queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub))
-
-    while True:
-        if not queue:
-            # Check if all processes are done
-            done = comm.allreduce(1 if not queue else 0, op=MPI.LAND)
-            if done:
-                break
-
-        if queue:
-            node = queue.pop()
-
-            if node.lb >= best_ub:
-                continue
-
-            if node.ub < best_ub:
-                best_ub = comm.allreduce(node.ub, op=MPI.MIN)
-
-            if node.lb == best_ub:
-                break
-
-            if time.time() - start_time > time_limit:
-                break
-
-            u, v = graph.find_pair(node.union_find, node.added_edges)
-            if u is None:
-                continue
-
-            # Branch 1: Same color
-            uf1 = deepcopy(node.union_find)
-            uf1.union(u, v)
-            edges1 = deepcopy(node.added_edges)
-            lb1 = len(graph.find_max_clique(uf1, edges1))
-            ub1 = len(set(graph.find_coloring(uf1, edges1)))
-            if lb1 < best_ub:
-                queue.append(BranchAndBoundNode(uf1, edges1, lb1, ub1))
-
-            # Branch 2: Different color
-            uf2 = deepcopy(node.union_find)
-            edges2 = deepcopy(node.added_edges)
-            ru = uf2.find(u)
-            rv = uf2.find(v)
-            edges2.add((ru, rv))
-            lb2 = len(graph.find_max_clique(uf2, edges2))
-            ub2 = len(set(graph.find_coloring(uf2, edges2)))
-            if lb2 < best_ub:
-                queue.append(BranchAndBoundNode(uf2, edges2, lb2, ub2))
+        best_ub = master_branch_and_bound(graph, queue, best_ub, start_time, time_limit)
+    else:
+        slave_branch_and_bound(graph)
 
     return best_ub
-
 
 def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
     graph.set_coloring_algorithm(DSatur())
-    graph.set_clique_algorithm(DLSIncreasingPenalty())
+    graph.set_clique_algorithm(DLSAdaptive())
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     start_time = time.time()
@@ -121,15 +151,17 @@ def solve_instance_parallel(filename, time_limit):
             coloring=graph.find_coloring(UnionFind(len(graph)), set())
         )
 
+def printMaster(str):
+    if rank==0:
+        print(str)
 
 def main():
-    if rank==0:
-        print(f"MPI size = {size}")
+    printMaster(f"MPI size = {size}")
 
     instance_root = "../instances/"
 
     # Manually specify instances
-    instances = ["jean.col", "queen5_5.col", "queen6_6.col", "queen7_7.col"]
+    instances = ["miles250.col",]
     
     # Or run all instances in the folder
     # instances = listdir(instance_root)
@@ -139,16 +171,16 @@ def main():
     # Sort by file size (bigger graphs take more time)
     instance_files = sorted(instance_files, key=lambda f: (stat(f).st_size))
 
-    badInstances = ("myciel") # myciel graphs ub lb never converge (even for optimal ub)
+    badInstances = ("myciel",) # myciel graphs ub lb never converge (even for optimal ub)
     for bad in badInstances:
         instance_files = [f for f in instance_files if not f.startswith(instance_root + bad)]
 
-    print(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
+    printMaster(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
     
     time_limit = 10000
 
     for instance in instance_files:
-        print(f"Solving {instance}...")
+        printMaster(f"Solving {instance}...")
         solve_instance_parallel(instance, time_limit)
 
 
