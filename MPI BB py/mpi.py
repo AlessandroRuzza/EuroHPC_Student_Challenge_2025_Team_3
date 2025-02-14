@@ -165,16 +165,17 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         print(f"Starting (UB, LB) = ({ub}, {lb})")
         queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub))
         best_ub = master_branch_and_bound(graph, queue, best_ub, start_time, time_limit)
+        return best_ub
     else:
         slave_branch_and_bound(graph)
+        return
 
-    return best_ub
 
 def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
     graph.set_coloring_algorithm(DSatur())
-    graph.set_clique_algorithm(DLSAdaptive())
+    graph.set_clique_algorithm(DLSIncreasingPenalty())
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     start_time = time.time()

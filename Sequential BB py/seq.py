@@ -128,7 +128,6 @@ def solve_instance(filename, timeLimit):
     # Set up algorithms
     graph.set_coloring_algorithm(DSatur())
     graph.set_clique_algorithm(DLSIncreasingPenalty())
-    # graph.set_branching_strategy(DegreeBranchingStrategy())
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     # MPI parameters
@@ -167,11 +166,18 @@ def solve_instance(filename, timeLimit):
 
 def main():
     instance_root = "../instances/"
-    instance_files = [join(instance_root, f) for f in listdir(instance_root) if isfile(join(instance_root, f))]
+
+    # Manually specify instances
+    instances = ["queen5_5.col",]
+    # Or run all instances in the folder
+    # instances = listdir(instance_root)
+
+    # Complete path of instances
+    instance_files = [join(instance_root, f) for f in instances if isfile(join(instance_root, f))]
     # Sort by file size (bigger graphs take more time)
     instance_files = sorted(instance_files, key=lambda f: (stat(f).st_size))
 
-    badInstances = ("myciel")
+    badInstances = ("myciel",)
     for bad in badInstances:
         instance_files = [f for f in instance_files if not f.startswith(instance_root + bad)]
 
