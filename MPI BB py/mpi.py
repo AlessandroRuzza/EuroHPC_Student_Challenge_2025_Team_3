@@ -186,11 +186,18 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode],
 
     for slave in slaveHandlers:
         slave.start()
-    optimalEvent.wait(timeout=time_limit)     # First slave handler that finds an optimal node will notify this lock
+
+    elapsed = time.time() - start_time
+    optimalEvent.wait(timeout=time_limit-elapsed)     # First slave handler that finds an optimal node will notify this lock
 
     printDebugSlave("Returning, terminating slaves.")
     for slave in slaveHandlers:
         slave.join() # Ensure all threads terminated (implies all slaves terminated as well)
+
+    # Before exiting, check all the generated nodes for improvements
+    if timeoutEvent.is_set() and queue:
+        best_lb[0] = max(best_lb[0], max(queue, key=lambda n: n.lb).lb)
+        best_ub[0] = min(best_ub[0], min(queue, key=lambda n: n.ub).ub)
     
     # Run one thread that solves nodes in this process? (to not waste resources)
     return best_ub[0], best_lb[0], best_coloring
@@ -244,7 +251,7 @@ def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
     graph.set_coloring_algorithm(DSatur())
-    graph.set_clique_algorithm(DLSIncreasingPenalty(max_steps=10))
+    graph.set_clique_algorithm(DLSIncreasingPenalty(max_steps=20))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     start_time = time.time()
