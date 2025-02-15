@@ -258,15 +258,8 @@ def printMaster(str):
     if rank==0:
         print(str)
 
-def main():
-    printMaster(f"MPI size = {size}")
-
+def runAllInstances():
     instance_root = "../instances/"
-
-    # Manually specify instances
-    # instances = ["queen5_5.col",]
-    
-    # Or run all instances in the folder
     instances = listdir(instance_root)
 
     # Complete path of instances
@@ -278,15 +271,19 @@ def main():
     for bad in badInstances:
         instance_files = [f for f in instance_files if not f.startswith(instance_root + bad)]
 
+def main():
+    printMaster(f"MPI size = {size}")
+
+    # Manually specify instance
+    instance = sys.argv[1]
+
     printMaster(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
     
     time_limit = 10000
 
-    for instance in instance_files:
-        printMaster(f"Solving {instance}...")
-        solve_instance_parallel(instance, time_limit)
-        comm.barrier() # Ensure all ranks are moving to next instance
-
+    printMaster(f"Solving {instance}...")
+    solve_instance_parallel(instance, time_limit)
+    comm.barrier() # Ensure all ranks finished
 
 if __name__ == "__main__":
     main()
