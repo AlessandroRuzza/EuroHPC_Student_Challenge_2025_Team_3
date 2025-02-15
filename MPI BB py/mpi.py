@@ -24,11 +24,11 @@ from algorithms.maxclique_heuristics import *
 from algorithms.coloring_heuristics import *
 from algorithms.branching_strategies import *
 
-from collections import defaultdict
 from copy import deepcopy
 
-# Debug flag
-debug = True
+# Debug flags
+debugSlave = False
+debugBounds = True
 
 # MPI Setup
 comm = MPI.COMM_WORLD
@@ -37,8 +37,11 @@ size = comm.Get_size()
 nodesPerSlave = 5
 
 
-def printDebug(str):
-    if debug: print(str)
+def printDebugSlave(str):
+    if debugSlave: print(str)
+
+def printDebugBounds(str):
+    if debugBounds: print(str)
 
 def branch_node(graph, node):
     u, v = graph.find_pair(node.union_find, node.added_edges)
@@ -86,7 +89,7 @@ def branch_node(graph, node):
 
 def handle_slave(graph, slaveRank, 
                  queueLock: Condition, queue: list[BranchAndBoundNode],
-                 best_ub_lock: Condition, best_ub, best_coloring: list,
+                 best_ub_lock: Condition, best_ub, best_lb, best_coloring: list,
                  optimalEvent: Event, timeoutEvent: Event, 
                  start_time, time_limit):
     while True:
@@ -117,14 +120,17 @@ def handle_slave(graph, slaveRank,
 
         with best_ub_lock:
             for node in nodes:
-                if node.lb >= best_ub[0]:
-                    pruneNodes.append(node)
+                # if node.lb >= best_ub[0]:   # This will never happen (maxClique <= chromaticNum <= best_ub)
+                #     pruneNodes.append(node)
                 if node.ub < best_ub[0]:
-                    print(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
+                    printDebugBounds(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
                     best_coloring.clear()
                     best_coloring.extend(graph.find_coloring(node.union_find, node.added_edges))
                     best_ub[0] = node.ub
-                if node.lb == best_ub[0]:
+                if node.lb > best_lb[0]:
+                    printDebugBounds(f"Slave {slaveRank} improved LB = {node.lb} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
+                    best_lb[0] = node.lb
+                if best_lb[0] == best_ub[0]:
                     optimalFound = True
                     break
 
@@ -141,7 +147,7 @@ def handle_slave(graph, slaveRank,
         childNodes = comm.recv(source=slaveRank)
 
         if childNodes == "Terminated":
-            printDebug(f"Slave Handler {slaveRank} received termination.")
+            printDebugSlave(f"Slave Handler {slaveRank} received termination.")
             return
         
         if childNodes is None:
@@ -157,32 +163,37 @@ def handle_slave(graph, slaveRank,
     response = comm.recv(source=slaveRank)
     while response != "Terminated":
         response = comm.recv(source=slaveRank)
-    printDebug(f"Slave Handler {slaveRank} received termination.")
+    printDebugSlave(f"Slave Handler {slaveRank} received termination.")
     return None
 
 def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], 
-                            best_ub, best_coloring, 
+                            best_ub, best_lb, best_coloring, 
                             start_time, time_limit=10000):
     # Run threads that interface with each slave (ranks [1, 2, 3, ..., size-1] )
     slaveHandlers: list[Thread] = []
     queueLock = Condition()
     best_ub_lock = Lock()
     best_ub = [best_ub,]
+    best_lb = [best_lb,]
     optimalEvent = Event()
     timeoutEvent = Event()
     for slaveRank in range(1, size):
-        slaveHandlers.append(Thread(daemon=True, target=handle_slave, args=(graph,slaveRank, queueLock,queue, best_ub_lock,best_ub,best_coloring, optimalEvent,timeoutEvent, start_time,time_limit)))
+        slaveHandlers.append(Thread(daemon=True, target=handle_slave, 
+                                    args=(graph,slaveRank, queueLock,queue, 
+                                          best_ub_lock,best_ub,best_lb,best_coloring, 
+                                          optimalEvent,timeoutEvent, 
+                                          start_time,time_limit)))
 
     for slave in slaveHandlers:
         slave.start()
     optimalEvent.wait(timeout=time_limit)     # First slave handler that finds an optimal node will notify this lock
 
-    printDebug("Returning, terminating slaves.")
+    printDebugSlave("Returning, terminating slaves.")
     for slave in slaveHandlers:
         slave.join() # Ensure all threads terminated (implies all slaves terminated as well)
     
     # Run one thread that solves nodes in this process? (to not waste resources)
-    return best_ub[0], best_coloring
+    return best_ub[0], best_lb[0], best_coloring
 
 def slave_branch_and_bound(graph):
     while True:
@@ -190,7 +201,7 @@ def slave_branch_and_bound(graph):
         nodes = comm.recv(source=0)
         if nodes == "Kill":
             comm.send("Terminated", 0)
-            printDebug(f"Slave {rank} sent termination.")
+            printDebugSlave(f"Slave {rank} sent termination.")
             return
         
         childNodes = []
@@ -210,33 +221,40 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         initial_edges = set()
 
         lb = len(graph.find_max_clique(initial_uf, initial_edges))
+        cliqueTime = time.time() - start_time
         initial_coloring = graph.find_coloring(initial_uf, initial_edges)
         ub = len(set(initial_coloring))
+        colorTime = time.time() - (start_time+cliqueTime)
 
         # Shared best upper bound
         best_ub = ub
+        best_lb = lb
         queue = []
 
         print(f"Starting (UB, LB) = ({ub}, {lb})")
+        print(f"Coloring time = {int(colorTime/60)}m {colorTime%60:.3f}s")
+        print(f"Clique time = {int(cliqueTime/60)}m {cliqueTime%60:.3f}s")
         queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub))
-        return master_branch_and_bound(graph, queue, best_ub, initial_coloring, start_time, time_limit)
+        return master_branch_and_bound(graph, queue, best_ub, best_lb, initial_coloring, start_time, time_limit)
     else:
         slave_branch_and_bound(graph)
-        return None, None
+        return None, None, None
 
 def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
     graph.set_coloring_algorithm(DSatur())
-    graph.set_clique_algorithm(DLSIncreasingPenalty())
+    graph.set_clique_algorithm(DLSIncreasingPenalty(max_steps=10))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     start_time = time.time()
-    chromatic_number, best_coloring = branch_and_bound_parallel(graph, time_limit)
+    chromatic_number, maxCliqueSize, best_coloring = branch_and_bound_parallel(graph, time_limit)
     wall_time = int(time.time() - start_time)
 
     if rank == 0:
         print(f"Chromatic number for {filename}: {chromatic_number}")
+        if maxCliqueSize < chromatic_number: 
+            print(f"MaxClique found = {maxCliqueSize}")
         print(f"Time: {int(wall_time/60)}m {wall_time%60}s")
         print(f"Is Valid? {graph.validate(best_coloring)}")
         if wall_time >= time_limit:
@@ -258,7 +276,7 @@ def printMaster(str):
     if rank==0:
         print(str)
 
-def runAllInstances():
+def getAllInstances():
     instance_root = "../instances/"
     instances = listdir(instance_root)
 
@@ -271,8 +289,12 @@ def runAllInstances():
     for bad in badInstances:
         instance_files = [f for f in instance_files if not f.startswith(instance_root + bad)]
 
+    return instance_files
+
 def main():
     printMaster(f"MPI size = {size}")
+
+    random.seed(10)
 
     # Manually specify instance
     instance = sys.argv[1]
