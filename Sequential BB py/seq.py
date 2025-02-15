@@ -161,26 +161,30 @@ def solve_instance(filename, timeLimit):
 
     print(f"Is valid? {isValid}")
     print(f"Passed time limit? {isOverTimeLimit}")
+    print(f"Time elapsed: {int(wall_time/60)}m {wall_time%60:.3f}s")
 
     return isValid and not isOverTimeLimit
 
-def main():
+def getAllInstances():
     instance_root = "../instances/"
-
-    # Manually specify instances
-    instances = ["queen5_5.col",]
-    # Or run all instances in the folder
-    # instances = listdir(instance_root)
+    instances = listdir(instance_root)
 
     # Complete path of instances
     instance_files = [join(instance_root, f) for f in instances if isfile(join(instance_root, f))]
     # Sort by file size (bigger graphs take more time)
     instance_files = sorted(instance_files, key=lambda f: (stat(f).st_size))
 
-    badInstances = ("myciel",)
+    badInstances = ("myciel",) # myciel graphs ub lb never converge (even for optimal ub)
     for bad in badInstances:
         instance_files = [f for f in instance_files if not f.startswith(instance_root + bad)]
 
+    return instance_files
+
+def main():
+    
+    # Manually specify instances
+    instance = sys.argv[1]
+    
     # longest instances: 
     #   fpsol2  (27.7s)
     #   inithx  (>10k s)
@@ -196,28 +200,10 @@ def main():
     #  To clear instances solved
     # os.remove("solved_instances.txt") 
 
-    start_from_idx = 0
-    delay = 2
     timeLimit = 10000
 
-    instance_files = instance_files[start_from_idx::]
-    i = start_from_idx+1
-
-    with open(f"solved_instances_time_{timeLimit}.txt", "w") as out:
-        for instance in instance_files:
-            print(f"Solving {instance}... #{i}/{len(instance_files)}")
-            start = time.time()
-            optimal = solve_instance(instance, timeLimit)
-            elapsed = time.time() - start
-            print(f"Time elapsed: {elapsed:.3f}s")
-
-            print(f"Waiting {delay} secs to show result.")
-            time.sleep(delay)
-            print()
-            i+=1
-
-            if optimal:
-                out.write(instance + "\n")
+    print(f"Solving {instance}...")
+    solve_instance(instance, timeLimit)
 
 if __name__ == "__main__":
     main()
