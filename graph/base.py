@@ -94,6 +94,7 @@ class Graph:
         self.coloring_algorithm = coloring_algorithm
         self.clique_algorithm = clique_algorithm
         self.branching_strategy = branching_strategy
+        self.best_ub = num_nodes
 
 
     ##### Graph operations

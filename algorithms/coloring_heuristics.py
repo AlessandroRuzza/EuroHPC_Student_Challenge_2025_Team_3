@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
+import time
 
 class ColoringHeuristic(ABC):
     """
@@ -21,7 +22,13 @@ class ColoringHeuristic(ABC):
         for x in range(len(graph)):
             if coloring[x] != -1:
                 coloring[uf.find(x)] = uf.find(x)
-        
+
+        # Normalize color ids to 0-k
+        uniqueColors = [c for c in set(coloring) if c != -1]
+        newColorIDs = {uniqueColors[i]: i for i in range(len(uniqueColors)) }
+        newColorIDs[-1] = -1
+        coloring = [newColorIDs[oldColor] for oldColor in coloring]
+
         return coloring
 
     def getNeighborColors(self, graph, uf, added_edges, coloring, node):
@@ -85,62 +92,54 @@ class DSatur(ColoringHeuristic):
         return coloring
 
 class BacktrackingDSatur(ColoringHeuristic):
-    def __init__(self):
+    def __init__(self, time_limit):
         super().__init__()
-        self.DSatur = DSatur()
+        self.dsatur = DSatur()
+        self.time_limit = time_limit
 
-    def find_coloring(self, graph, union_find, added_edges):
-        init_coloring = self.uf_to_coloring(graph, union_find)
-
-        saturation = [0] * len(graph)
-        for node in range(len(graph)):
-            neighborColors = set(init_coloring[n] for n in graph.adj_list[node] if init_coloring[n] != -1)
-            saturation[node] = len(neighborColors)      
-
-        uncolored_nodes = list(n for n in range(len(graph)) if init_coloring[n] == -1)
-        uncolored_nodes = sorted(uncolored_nodes, key=lambda n: (saturation[n], graph.degree(n)))
-        assignments = [init_coloring[i] for i in range(len(graph))]
-
-        # Apply DSatur to find an initial UB
-        # A k-coloring of k<=ub exists
-        best_coloring = self.DSatur.find_coloring(graph, union_find, added_edges)
-        ub = len(set(best_coloring))
+    def find_coloring(self, graph, uf, added_edges):
+        local_obj = BacktrackingDSatur(self.time_limit)
+        return local_obj.__dsatur_backtracking__(graph, uf, added_edges)
+    
+    def __dsatur_backtracking__(self, graph, uf, added_edges):
+        start_time = time.time()
+        self.best_coloring = self.dsatur.find_coloring(graph, uf, added_edges)
+        # Slaves save the best_ub value in the graph object
+        self.best_num_colors = min(graph.best_ub, len(set(self.best_coloring))) # Initial UB
         
-        while True:
-            # Search for k-coloring k<ub
-            i = 0
-            while i < len(uncolored_nodes):
-                if i<0: # no possible assignments
-                    break
-
-                # Pick node
-                curr_node = uncolored_nodes[i]
-
-                # Assign color
-                neighborColors = self.getNeighborColors(graph, union_find, added_edges, assignments, curr_node)
-                new_color = assignments[curr_node]+1
-                while new_color in neighborColors:
-                    new_color += 1
-
-                if new_color < ub-1: # min improvement uses 1 less color 
-                                     # (e.g 2-coloring uses colors 0,1 -> max color for 1-coloring is 0 < 2-1)
-                    # Assign color, forward step
-                    assignments[curr_node] = new_color
-                    i += 1 
-                else:
-                    # Do backward step
-                    assignments[curr_node] = -1
-                    i -= 1 
-                    continue
-
-            # If found, reduce ub
-            if i>=0:
-                ub = len(set(assignments))
-                best_coloring = assignments.copy()
-            else:
-                break
+        # msg = f"Backtrack. graphUB={graph.best_ub} ; init_Len={len(set(self.best_coloring))}"
         
-        # When new assignment was not found
-        return best_coloring
+        def backtrack(coloring):
+            if time.time() - start_time > self.time_limit:
+                return
+            # Check added_edges constraint
+            for a, b in added_edges:
+                if coloring[a] == coloring[b]:
+                    return
+            if all(color != -1 for color in coloring):
+                current_max_color = max(coloring) + 1
+                if current_max_color < self.best_num_colors:
+                    # validTxt = "Valid" if graph.validate(coloring) else "Invalid"
+                    # print(f"Backtrack improved from {self.best_num_colors} to {current_max_color}. {validTxt}")
+                    self.best_num_colors = current_max_color
+                    self.best_coloring = coloring[:]
+                return
 
+            # Select the next node dynamically based on saturation and degree
+            uncolored_nodes = [node for node in range(graph.num_nodes) if coloring[node] == -1]
+            saturation = {node: len({coloring[neighbor] for neighbor in graph.adj_list[node] if coloring[neighbor] != -1}) for node in uncolored_nodes}
+            best_node = max(uncolored_nodes, key=lambda n: (saturation[n], graph.degree(n)))
 
+            # Determine available colors
+            neighbor_colors = {coloring[neighbor] for neighbor in graph.adj_list[best_node] if coloring[neighbor] != -1}
+            available_colors = [color for color in range(self.best_num_colors) if color not in neighbor_colors]
+
+            for color in available_colors:
+                coloring[best_node] = color
+                backtrack(coloring)
+                coloring[best_node] = -1
+
+        coloring = self.uf_to_coloring(graph, uf)
+        backtrack(coloring)
+        # print(msg, f"; final={self.best_num_colors} ; final_Len={len(set(self.best_coloring))}")
+        return self.best_coloring
