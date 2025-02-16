@@ -250,7 +250,7 @@ def branch_and_bound_parallel(graph, time_limit=10000):
 def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
-    graph.set_coloring_algorithm(DSatur())
+    graph.set_coloring_algorithm(BacktrackingDSatur())
     graph.set_clique_algorithm(DLSIncreasingPenalty(max_steps=20))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
