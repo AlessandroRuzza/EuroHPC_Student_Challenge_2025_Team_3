@@ -5,6 +5,34 @@ class ColoringHeuristic(ABC):
     """
     Abstract base class for coloring heuristics
     """
+    def uf_to_coloring(self, graph, uf):
+        coloring = [-1] * len(graph)
+
+        # Normalise color ids in unionFind (by calling find on merged nodes)
+        # This results in the roots of those unions not being colored
+        for x in range(len(graph)):
+            if uf.find(x) == x:
+                coloring[x] = -1
+            else:
+                coloring[x] = uf.find(x)
+
+        # Color the roots
+        # The only nodes with -1 will be those that were never merged in unionFind
+        for x in range(len(graph)):
+            if coloring[x] != -1:
+                coloring[uf.find(x)] = uf.find(x)
+        
+        return coloring
+
+    def getNeighborColors(self, graph, uf, added_edges, coloring, node):
+        # Determine available colors
+        neighbor_colors = list(coloring[neighbor] for neighbor in graph.adj_list[node] if coloring[neighbor] >= 0)
+        # Add neighbors according to added_edges
+        neighbor_colors.append(coloring[n] for n,b in added_edges if uf.find(b) == uf.find(node) if coloring[n] >= 0)
+        neighbor_colors.append(coloring[n] for a,n in added_edges if uf.find(a) == uf.find(node) if coloring[n] >= 0)
+        neighbor_colors = set(neighbor_colors) # remove duplicates
+        return neighbor_colors
+    
     @abstractmethod
     def find_coloring(self, graph, union_find, added_edges):
         """
@@ -21,28 +49,13 @@ class ColoringHeuristic(ABC):
         """
         pass
 
-
 class DSatur(ColoringHeuristic):
     """
     DSatur coloring heuristic
     """
 
     def find_coloring(self, graph, uf, added_edges):
-        coloring = [-1] * len(graph)
-
-        # Normalise color ids in unionFind (by calling find on merged nodes)
-        # This results in the roots of those unions not being colored
-        for x in range(len(graph)):
-            if uf.find(x) == x:
-                coloring[x] = -1
-            else:
-                coloring[x] = uf.find(x)
-
-        # Color the roots
-        # The only nodes with -1 will be those that were never merged in unionFind
-        for x in range(len(graph)):
-            if coloring[x] != -1:
-                coloring[uf.find(x)] = uf.find(x)
+        coloring = self.uf_to_coloring(graph, uf)
 
         saturation = [0] * len(graph)
         for node in range(len(graph)):
@@ -57,11 +70,7 @@ class DSatur(ColoringHeuristic):
             uncolored_nodes.remove(best_node)
 
             # Determine available colors
-            neighbor_colors = list(coloring[neighbor] for neighbor in graph.adj_list[best_node] if coloring[neighbor] >= 0)
-            # Add neighbors according to added_edges
-            neighbor_colors.append(coloring[n] for n,b in added_edges if uf.find(b) == uf.find(best_node) if coloring[n] >= 0)
-            neighbor_colors.append(coloring[n] for a,n in added_edges if uf.find(a) == uf.find(best_node) if coloring[n] >= 0)
-            neighbor_colors = set(neighbor_colors) # remove duplicates
+            neighbor_colors = self.getNeighborColors(graph, uf, added_edges, coloring, best_node)
             color = 0
             while color in neighbor_colors:
                 color += 1
@@ -74,3 +83,46 @@ class DSatur(ColoringHeuristic):
                     saturation[neighbor] += 1
 
         return coloring
+
+class BacktrackingDSatur(ColoringHeuristic):
+    def __init__(self):
+        super().__init__()
+        self.DSatur = DSatur()
+
+    def find_coloring(self, graph, union_find, added_edges):
+        coloring = self.uf_to_coloring(graph, union_find)
+
+        saturation = [0] * len(graph)
+        for node in range(len(graph)):
+            neighborColors = set(coloring[n] for n in graph.adj_list[node] if coloring[n] != -1)
+            saturation[node] = len(neighborColors)      
+
+        # Apply DSatur to find an UB
+        # A k-coloring of k<=ub exists
+        ub = len(set(self.DSatur.find_coloring(graph, union_find, added_edges)))
+
+        uncolored_nodes = set(n for n in range(len(graph)) if coloring[n] == -1)
+        assignments = []
+        canAssign = True
+        while canAssign:
+            # Pick node
+            best_node = max(uncolored_nodes, key=lambda n: (saturation[n], graph.degree(n)))
+
+            # Assign color
+            neighborColors = self.getNeighborColors(graph, union_find, added_edges, coloring, best_node)
+            color = 0
+            while color in neighborColors:
+                color += 1
+
+            if color >= ub:
+                # Do backward step
+                # or Try another node
+                pass 
+            else:
+                # Assign color
+                coloring[best_node] = color
+                assignments.append((best_node, color))
+
+
+
+
