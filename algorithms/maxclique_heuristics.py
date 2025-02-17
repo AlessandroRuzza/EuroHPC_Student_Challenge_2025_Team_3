@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-
+import multiprocessing
+import numpy as np
+from copy import deepcopy
 
 import random
 
@@ -200,6 +202,7 @@ class BaseDLS(MaxCliqueHeuristic):
         for _ in range(self.max_steps):
             self.single_step(graph, union_find, added_edges)
 
+        
         return self.best_clique
     
 
@@ -338,21 +341,21 @@ class DLSAdaptive(BaseDLS):
     Adaptive DLS implementation that switches between basic and color-aware strategies
     based on the state of the coloring and search progress.
     """
-    def __init__(self, max_steps=100, initial_penalty_delay=1, color_threshold=0.75):
+    def __init__(self, max_steps=100, penalty_delay=1, color_threshold=0.75):
         """
         Constructor for the DLSAdaptive class
 
         :param max_steps: Number of iterations to run the algorithm before stopping
         :type max_steps: int
-        :param initial_penalty_delay: Delay in penalty updates
-        :type initial_penalty_delay: int
+        :param penalty_delay: Delay in penalty updates
+        :type penalty_delay: int
         :param color_threshold: Threshold for switching between strategies (values between 0 and 1)
         :type color_threshold: float
         """
-        super().__init__(max_steps, initial_penalty_delay)
+        super().__init__(max_steps, penalty_delay)
         self.color_threshold = color_threshold
-        self.basic_dls = DLS(max_steps, initial_penalty_delay)
-        self.color_dls = DLSwithColors(max_steps, initial_penalty_delay)
+        self.basic_dls = DLS(max_steps, penalty_delay)
+        self.color_dls = DLSwithColors(max_steps, penalty_delay)
         self.current_strategy = None
 
     def single_step(self, graph, union_find, added_edges):
@@ -386,20 +389,20 @@ class DLSIncreasingPenalty(BaseDLS):
     After increase_interval steps without improvement, the penalty delay is increased by 1,
     saturating at max_penalty_delay
     """
-    def __init__(self, max_steps=100, initial_penalty_delay=1, increase_interval=10, max_penalty_delay=5):
+    def __init__(self, max_steps=100, penalty_delay=1, increase_interval=10, max_penalty_delay=5):
         """
         Constructor for the DLSIncreasingPenalty class
 
         :param max_steps: Number of iterations to run the algorithm before stopping
         :type max_steps: int
-        :param initial_penalty_delay: Delay in penalty updates
-        :type initial_penalty_delay: int
+        :param penalty_delay: Delay in penalty updates
+        :type penalty_delay: int
         :param increase_interval: Interval for increasing penalty delay
         :type increase_interval: int
         :param max_penalty_delay: Maximum penalty delay
         :type max_penalty_delay: int
         """
-        super().__init__(max_steps, initial_penalty_delay)
+        super().__init__(max_steps, penalty_delay)
         self.increase_interval = increase_interval
         self.max_penalty_delay = max_penalty_delay
         self.steps_without_improvement = 0
@@ -430,3 +433,77 @@ class DLSIncreasingPenalty(BaseDLS):
         
         self.step_count += 1
         return self.best_clique
+
+
+class ParallelDLS(BaseDLS):
+    """
+    Parallel DLS implementation using multiprocessing to run multiple DLS solvers
+    with different parameters sampled from a Poisson distribution.
+    """
+    def __init__(self, num_workers=5, lambda_max_steps=10, lambda_penalty_delay=1, dls_instance=DLS):
+        """
+        Constructor for the ParallelDLS class
+
+        :param num_workers: Number of parallel DLS solvers to run
+        :type num_workers: int
+        :param max_steps: Number of iterations to run each DLS solver
+        :type max_steps: int
+        :param penalty_delay: Initial penalty delay for each solver
+        :type penalty_delay: int
+        :param lambda_max_steps: Lambda parameter for Poisson distribution of max_steps
+        :type lambda_max_steps: float
+        :param lambda_penalty_delay: Lambda parameter for Poisson distribution of penalty_delay
+        :type lambda_penalty_delay: float
+        :param dls_instance: An instance of the DLS class to use for solving
+        :type dls_instance: BaseDLS
+        """
+
+        super().__init__(lambda_max_steps, lambda_penalty_delay)
+        self.num_workers = num_workers
+        self.lambda_max_steps = lambda_max_steps
+        self.lambda_penalty_delay = lambda_penalty_delay
+        self.dls_instance = dls_instance
+
+
+
+    def single_step(self, graph, union_find, added_edges):
+
+        """Run the parallel DLS solvers and return the best clique found.
+
+        :param graph: The graph to find the maximum clique in
+        :type graph: Graph
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: List of edges to be added to the graph
+        :type added_edges: list
+        :return: The best clique found across all solvers
+        :rtype: set
+        """
+
+        with multiprocessing.Pool(self.num_workers) as pool:
+            results = pool.starmap(self.run_single_solver, [(graph, union_find, added_edges)] * self.num_workers)
+        
+        # Return the best clique found
+        self.current_clique = max(results, key=len)
+        if len(self.current_clique) > len(self.best_clique):
+            self.best_clique = set(self.current_clique)
+        
+        return self.best_clique
+        
+
+    def run_single_solver(self, graph, union_find, added_edges):
+        """Run a single DLS solver with parameters sampled from Poisson distribution.
+
+        :param graph: The graph to find the maximum clique in
+        :type graph: Graph
+        :return: The best clique found by this solver
+        :rtype: set
+        """
+        worker_max_steps = max(int(np.random.poisson(self.lambda_max_steps)),1)
+        worker_penalty_delay = max(int(np.random.poisson(self.lambda_penalty_delay)), 1)
+        
+        solver = deepcopy(self.dls_instance)
+        solver.max_steps = worker_max_steps
+        solver.penalty_delay = worker_penalty_delay
+
+        return solver.find_max_clique(graph, union_find, added_edges)

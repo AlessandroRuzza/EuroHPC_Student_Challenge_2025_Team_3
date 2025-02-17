@@ -303,7 +303,10 @@ def main():
 
     random.seed(10)
 
-    # Manually specify instance
+    if len(sys.argv) < 2:
+        print("Usage: python seq.py <instance>")
+        sys.exit(1)
+        
     instance = sys.argv[1]
 
     printMaster(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
