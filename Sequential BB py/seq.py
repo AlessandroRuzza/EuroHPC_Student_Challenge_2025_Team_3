@@ -127,7 +127,7 @@ def solve_instance(filename, timeLimit):
 
     # Set up algorithms
     graph.set_coloring_algorithm(DSatur())
-    graph.set_clique_algorithm(DLSIncreasingPenalty())
+    graph.set_clique_algorithm(ParallelDLS(dls_instance=DLS()))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     # MPI parameters
@@ -182,7 +182,11 @@ def getAllInstances():
 
 def main():
     
-    # Manually specify instances
+    if len(sys.argv) < 2:
+        print("Usage: python seq.py <instance>")
+        sys.exit(1)
+        
+
     instance = sys.argv[1]
     
     # longest instances: 
