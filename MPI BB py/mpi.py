@@ -112,10 +112,10 @@ def handle_slave(graph, slaveRank,
 
         with queueLock: 
             # Temp debug to validate worsenTolerance pruning strategy
-            if not int(elapsed%20) and flag:
+            if not int(elapsed)%10 and flag:
                 printConditional(f"Len Queue = {len(queue)}", debugQueue)
                 flag=False
-            elif int(elapsed%20): 
+            elif int(elapsed)%10: 
                 flag=True
 
             while not queue:
