@@ -128,8 +128,19 @@ class BacktrackingDSatur(ColoringHeuristic):
 
             # Select the next node dynamically based on saturation and degree
             uncolored_nodes = [node for node in range(graph.num_nodes) if coloring[node] == -1]
-            saturation = {node: len({coloring[neighbor] for neighbor in graph.adj_list[node] if coloring[neighbor] != -1}) for node in uncolored_nodes}
-            best_node = max(uncolored_nodes, key=lambda n: (saturation[n], graph.degree(n)))
+            saturation = {
+                node: len({coloring[neighbor] for neighbor in graph.adj_list[node] if coloring[neighbor] != -1})
+                for node in uncolored_nodes
+            }
+
+            max_saturation = max(saturation.values())
+            candidates = [node for node in uncolored_nodes if saturation[node] == max_saturation]
+
+            # Weigh candidates by node degree
+            degrees = [graph.degree(node) for node in candidates]
+            total_degree = sum(degrees)
+            probabilities = [deg / total_degree for deg in degrees]
+            best_node = random.choices(candidates, weights=probabilities, k=1)[0]
 
             # Determine available colors
             neighbor_colors = {coloring[neighbor] for neighbor in graph.adj_list[best_node] if coloring[neighbor] != -1}
@@ -144,77 +155,3 @@ class BacktrackingDSatur(ColoringHeuristic):
         backtrack(coloring)
         # print(msg, f"; final={self.best_num_colors} ; final_Len={len(set(self.best_coloring))}")
         return self.best_coloring
-
-class HEA(ColoringHeuristic):
-    def __init__(self, population_size=20, generations=100, mutation_rate=0.1, innerAlg=DSatur, innerArgs=None):
-        """
-        Create HEA heuristic
-
-        :param population_size: Number of colorings alive each generation
-        :type population_size: int
-        :param generations: Number of generations (main factor in execution time)
-        :type generations: int
-        :param mutation_rate: [0,1] rate of "exploration" of new colorings
-        :type mutation_rate: int
-        """
-        
-        super().__init__()
-        self.population_size = population_size
-        self.generations = generations
-        self.mutation_rate = mutation_rate
-        self.dsatur = innerAlg()
-
-    def find_coloring(self, graph, union_find, added_edges):
-        return self.hybrid_evolutionary_algorithm(graph, union_find, added_edges)
-    
-    def hybrid_evolutionary_algorithm(self, graph, uf, added_edges):
-        def generate_initial_population():
-            population = []
-            init_coloring = self.dsatur.find_coloring(graph, uf, added_edges)
-            for _ in range(self.population_size):
-                coloring = init_coloring[:]
-                mutate(coloring)
-                # coloring = [random.randint(0, graph.num_nodes - 1) for _ in range(graph.num_nodes)]
-                population.append(coloring)
-            return population
-
-        def fitness(coloring):
-            conflicts = 0
-            for node in range(graph.num_nodes):
-                for neighbor in graph.adj_list[node]:
-                    if coloring[node] == coloring[neighbor]:
-                        conflicts += 1
-            return -conflicts
-
-        def crossover(parent1, parent2):
-            point = random.randint(0, graph.num_nodes - 1)
-            child = parent1[:point] + parent2[point:]
-            return child
-
-        def mutate(coloring):
-            if random.random() < self.mutation_rate:
-                node = random.randint(0, graph.num_nodes - 1)
-                coloring[node] = random.randint(0, graph.num_nodes - 1)
-
-        population = generate_initial_population()
-
-        for _ in range(self.generations):
-            population.sort(key=fitness, reverse=True)
-            next_generation = population[:self.population_size // 2]
-
-            while len(next_generation) < self.population_size:
-                parent1, parent2 = random.sample(population[:self.population_size // 2], 2)
-                child = crossover(parent1, parent2)
-                mutate(child)
-                next_generation.append(child)
-
-            population = next_generation
-
-        best_coloring = max(population, key=fitness)
-    # Also return fitness to check if valid coloring
-        return best_coloring
-    
-
-
-
-

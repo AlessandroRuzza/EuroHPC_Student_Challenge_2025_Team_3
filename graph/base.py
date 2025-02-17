@@ -108,7 +108,7 @@ class Graph:
         return v in self.adj_list[u]
 
     def degree(self, node):
-        return len(self.adj_list[node])
+        return len(self.adj_list[node])+1 # +1 Because every node is adj to itself
 
 
     ##### Coloring and clique algorithms
