@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from copy import deepcopy
-
 import random
 
 class MaxCliqueHeuristic(ABC):
@@ -480,8 +479,11 @@ class ParallelDLS(BaseDLS):
         :rtype: set
         """
 
-        with multiprocessing.Pool(self.num_workers) as pool:
-            results = pool.starmap(self.run_single_solver, [(graph, union_find, added_edges)] * self.num_workers)
+        with ThreadPoolExecutor(max_workers=self.num_workers) as pool:
+            results = pool.map(self.run_single_solver, 
+                               [graph] * self.num_workers, 
+                               [union_find]*self.num_workers, 
+                               [added_edges]*self.num_workers)
         
         # Return the best clique found
         self.current_clique = max(results, key=len)
