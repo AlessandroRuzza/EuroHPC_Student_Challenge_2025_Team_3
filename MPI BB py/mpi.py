@@ -29,6 +29,7 @@ from copy import deepcopy
 # Debug flags
 debugSlave = False
 debugBounds = True
+debugQueue = False
 
 # MPI Setup
 comm = MPI.COMM_WORLD
@@ -46,6 +47,9 @@ def printDebugSlave(str):
 
 def printDebugBounds(str):
     if debugBounds: print(str)
+    
+def printConditional(str, condition):
+    if condition: print(str)
 
 def branch_node(graph, node):
     u, v = graph.find_pair(node.union_find, node.added_edges)
@@ -109,7 +113,7 @@ def handle_slave(graph, slaveRank,
         with queueLock: 
             # Temp debug to validate worsenTolerance pruning strategy
             if not int(elapsed%20) and flag:
-                print(f"Len Queue = {len(queue)}")
+                printConditional(f"Len Queue = {len(queue)}", debugQueue)
                 flag=False
             elif int(elapsed%20): 
                 flag=True
@@ -266,7 +270,7 @@ def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
     graph.set_coloring_algorithm(BacktrackingDSatur(time_limit=1))
-    graph.set_clique_algorithm(DLSIncreasingPenalty(max_steps=20))
+    graph.set_clique_algorithm(ParallelDLS(num_workers=5, lambda_max_steps=10, dls_instance=DLSIncreasingPenalty()))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     start_time = time.time()
