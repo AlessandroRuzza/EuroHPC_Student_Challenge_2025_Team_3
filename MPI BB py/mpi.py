@@ -36,6 +36,10 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 nodesPerSlave = 5
 
+# Branch parameters
+worsenTolerance = 1
+minQueueLenForPruning = size*2 * nodesPerSlave
+
 
 def printDebugSlave(str):
     if debugSlave: print(str)
@@ -92,6 +96,7 @@ def handle_slave(graph, slaveRank,
                  best_ub_lock: Condition, best_ub, best_lb, best_coloring: list,
                  optimalEvent: Event, timeoutEvent: Event, 
                  start_time, time_limit):
+    flag = True
     while True:
         if timeoutEvent.is_set() or optimalEvent.is_set():
             break
@@ -100,8 +105,15 @@ def handle_slave(graph, slaveRank,
         if elapsed > time_limit:
             timeoutEvent.set()
             break
-        
+
         with queueLock: 
+            # Temp debug to validate worsenTolerance pruning strategy
+            if not int(elapsed%20) and flag:
+                print(f"Len Queue = {len(queue)}")
+                flag=False
+            elif int(elapsed%20): 
+                flag=True
+
             while not queue:
                 queueLock.wait(timeout=1)
                 # Timeout to prevent getting stuck when only a few nodes are needed 
@@ -120,8 +132,8 @@ def handle_slave(graph, slaveRank,
 
         with best_ub_lock:
             for node in nodes:
-                # if node.lb >= best_ub[0]:   # This will never happen (maxClique <= chromaticNum <= best_ub)
-                #     pruneNodes.append(node)
+                if node.ub > best_ub[0]+worsenTolerance and len(queue) > minQueueLenForPruning:  
+                    pruneNodes.append(node)
                 if node.ub < best_ub[0]:
                     printDebugBounds(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
                     best_coloring.clear()
@@ -143,7 +155,8 @@ def handle_slave(graph, slaveRank,
 
         if not nodes: continue
         
-        comm.send(nodes, slaveRank)
+        # Send (best_ub, nodes) to slave for branching
+        comm.send((best_ub[0], nodes), slaveRank)
         childNodes = comm.recv(source=slaveRank)
 
         if childNodes == "Terminated":
@@ -211,6 +224,8 @@ def slave_branch_and_bound(graph):
             printDebugSlave(f"Slave {rank} sent termination.")
             return
         
+        best_ub, nodes = nodes
+        graph.best_ub = best_ub
         childNodes = []
         for node in nodes:
             # Run node
@@ -250,7 +265,7 @@ def branch_and_bound_parallel(graph, time_limit=10000):
 def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
-    graph.set_coloring_algorithm(DSatur())
+    graph.set_coloring_algorithm(BacktrackingDSatur(time_limit=1))
     graph.set_clique_algorithm(DLSIncreasingPenalty(max_steps=20))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
