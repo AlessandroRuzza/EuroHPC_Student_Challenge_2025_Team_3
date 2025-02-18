@@ -50,6 +50,11 @@ def printDebugBounds(str):
     
 def printConditional(str, condition):
     if condition: print(str)
+    
+def printMaster(str):
+    if rank==0:
+        print(str)
+
 
 def branch_node(graph, node):
     u, v = graph.find_pair(node.union_find, node.added_edges)
@@ -297,25 +302,6 @@ def solve_instance_parallel(filename, time_limit):
             graph=graph,
             coloring=best_coloring
         )
-
-def printMaster(str):
-    if rank==0:
-        print(str)
-
-def getAllInstances():
-    instance_root = "../instances/"
-    instances = listdir(instance_root)
-
-    # Complete path of instances
-    instance_files = [join(instance_root, f) for f in instances if isfile(join(instance_root, f))]
-    # Sort by file size (bigger graphs take more time)
-    instance_files = sorted(instance_files, key=lambda f: (stat(f).st_size))
-
-    badInstances = ("myciel",) # myciel graphs ub lb never converge (even for optimal ub)
-    for bad in badInstances:
-        instance_files = [f for f in instance_files if not f.startswith(instance_root + bad)]
-
-    return instance_files
 
 def main():
     printMaster(f"MPI size = {size}")
