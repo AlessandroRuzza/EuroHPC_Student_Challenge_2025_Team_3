@@ -54,7 +54,16 @@ class BranchingStrategy(ABC):
                 rv = union_find.find(v)
                 if ru == rv:
                     continue
-                adj = (v in graph.adj_list[u]) or ((ru, rv) in added_edges) or ((rv, ru) in added_edges)
+                adj = (v in graph.adj_list[u]) # If v,u directly adjacent
+
+                # or (ru, rv) in added_edges or (rv, ru) in added_edges
+                # Normal "in" operator doesn't work as we need to look for root of union_find
+                for a,b in added_edges:
+                    if adj: break
+                    u_v_in = union_find.find(a) == ru and union_find.find(b) == rv
+                    v_u_in = union_find.find(a) == rv and union_find.find(b) == ru
+                    adj = u_v_in or v_u_in
+                    
                 if not adj:
                     return u, v
         return None, None
