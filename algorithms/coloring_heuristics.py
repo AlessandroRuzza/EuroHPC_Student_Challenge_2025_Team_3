@@ -4,6 +4,14 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 import random
 
+def coloring_to_independence_number(coloring: list[int]):
+    uniqueColors = set(coloring)
+    colorCounts = [0] * len(uniqueColors)
+    for c in uniqueColors:
+        colorCounts[c] = coloring.count(c)
+    
+    return max(colorCounts)
+
 class ColoringHeuristic(ABC):
     """
     Abstract base class for coloring heuristics

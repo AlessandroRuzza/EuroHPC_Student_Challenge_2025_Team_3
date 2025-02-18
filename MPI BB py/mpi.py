@@ -132,13 +132,24 @@ def branch_node(graph, node):
 
         clique = graph.find_max_clique(uf1, edges1)
         lb1 = len(clique)
+        
 
         coloring = graph.find_coloring(uf1, edges1)
         ub1 = len(set(coloring))
+
+        indep_num = coloring_to_independence_number(coloring)
+        indep_LB = len(graph) / indep_num
+        print(f"1 COL Indep. number LB = {indep_LB} ; Clique LB = {lb1}")
+
+        COMPL_indep_num = len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
+        print(f"COMPL Indep. number LB = {COMPL_indep_num} ; Clique LB = {lb1}")
+
+
         childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1))
         log.append(f"Node {node.id} branched by imposing {u}, {v} have the same color \n")
         log.append(f"Branch 1 child node results: \n")
         log.append(f"Clique (LB = {lb1}) = {clique}\n")
+        log.append(f"Indep. LB = {indep_LB}\n")
         log.append(f"Coloring (UB = {ub1}) = {coloring}\n\n")
 
     # Branch 2: Different color
@@ -152,11 +163,19 @@ def branch_node(graph, node):
     lb2 = len(clique)
     coloring = graph.find_coloring(uf2, edges2)
     ub2 = len(set(coloring))
+
+    indep_num = coloring_to_independence_number(coloring)
+    indep_LB = len(graph) / indep_num
+    print(f"2 COL Indep. number LB = {indep_LB} ; Clique LB = {lb2}")
+    COMPL_indep_num = len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
+    print(f"COMPL Indep. number LB = {COMPL_indep_num} ; Clique LB = {lb2}")
+
     childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2))
 
     log.append(f"Node {node.id} branched by imposing vertices {u}, {v} have different colors\n")
     log.append(f"Branch 2 child node results: \n")
     log.append(f"Clique (LB = {lb2}) = {clique}\n")
+    log.append(f"Indep. LB = {indep_LB}\n")
     log.append(f"Coloring (UB = {ub2}) = {coloring}\n\n")
 
     return childNodes
@@ -400,6 +419,9 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         initial_coloring = graph.find_coloring(initial_uf, initial_edges)
         ub = len(set(initial_coloring))
         colorTime = time.time() - (start_time+cliqueTime)
+        
+        indep_num = coloring_to_independence_number(initial_coloring)
+        print(f"Indep. number LB = {len(graph) / indep_num}")
 
         # Shared best upper bound
         best_ub = ub

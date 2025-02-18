@@ -106,12 +106,25 @@ class Graph:
         :type branching_strategy: BranchingStrategy
         """
         self.num_nodes = num_nodes
-        self.adj_list = defaultdict(list)
+        self.adj_list = defaultdict(set)
         self.coloring_algorithm = coloring_algorithm
         self.clique_algorithm = clique_algorithm
         self.branching_strategy = branching_strategy
         self.best_ub = num_nodes
 
+    ##### Complement
+
+    def complement(self):
+        complG = Graph(self.num_nodes, 
+                       self.coloring_algorithm,
+                       self.clique_algorithm,
+                       self.branching_strategy)
+        for a in range(self.num_nodes):
+            for b in range(self.num_nodes):
+                if not self.is_connected(a,b):
+                    complG.add_edge(a,b)
+
+        return complG
 
     ##### Graph operations
 
@@ -124,9 +137,9 @@ class Graph:
         :param v: a node of the graph
         :type v: int
         """
-        if v not in self.adj_list[u]:
-            self.adj_list[u].append(v)
-            self.adj_list[v].append(u)
+        # if v not in self.adj_list[u]:
+        self.adj_list[u].add(v)
+        self.adj_list[v].add(u)
 
     def is_connected(self, u, v):
         """
