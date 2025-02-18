@@ -24,6 +24,10 @@ from algorithms.branching_strategies import *
 
 from copy import deepcopy
 
+# Solver info
+solverName = "MPI_BacktrackingDSatur_DLS"
+solverVersion = "v1.0.1"
+
 # Debug flags
 debugSlave = False
 debugBounds = True
@@ -61,7 +65,7 @@ def printDebugBounds(str):
     
 def printConditional(str, condition):
     """
-    Print a message if a condition is met
+    Print a message if a condition is met.
     
     :param str: message to print
     :type str: str
@@ -418,8 +422,8 @@ def solve_instance_parallel(filename, time_limit):
         
         output_results(
             instance_name=filename,
-            solver_name="MPI_DSatur_DLS",
-            solver_version="v1.0.1",
+            solver_name=solverName,
+            solver_version=solverVersion,
             num_workers=size,
             num_cores=coresPerSlave,
             wall_time=wall_time,
@@ -429,6 +433,9 @@ def solve_instance_parallel(filename, time_limit):
         )
 
 def main():
+    """
+    Main Function.
+    """
     printMaster(f"MPI size = {size}")
 
     random.seed(10)

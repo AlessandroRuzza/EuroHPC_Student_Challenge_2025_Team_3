@@ -1,9 +1,18 @@
-
 import random
 import time
 
 # Generate a random graph with num_nodes nodes and density probability of edge between any two nodes
 def generate_random_graph(num_nodes, density):
+    """
+    Generates a random graph. (Mostly used for testing purposes)
+
+    :param num_nodes: Number of graph vertices
+    :type num_nodes: int
+    :param density: Average probability of two nodes being connected
+    :type density: float
+    :return: The generated graph
+    :rtype: Graph
+    """
     from graph.base import Graph
     graph = Graph(num_nodes)
     random.seed(time.time())
@@ -18,6 +27,14 @@ def generate_random_graph(num_nodes, density):
 
 # Parse a .col file and return a graph
 def parse_col_file(file_path):
+    """
+    Parses a .col file to construct the Graph corresponding to the instance
+
+    :param file_path: Relative path to .col file
+    :type file_path: str
+    :return: The Graph object corresponding to instance graph
+    :rtype: Graph
+    """
     from graph.base import Graph
     graph = None
 
@@ -45,15 +62,40 @@ def parse_col_file(file_path):
 
     return graph
 
-def timeAsStr(timeStruct = time.localtime()):
-    return time.strftime('%H:%M:%S')
-
 def secondsAsStr(s):
-    h = s/60/60
-    m = s/60
-    return f"{h}h{m}m{s}s"
+    """
+    Parses an amount of seconds to hh:mm:ss format.
+
+    :param s: seconds
+    :type s: float
+    :return: Time as hh:mm:ss format
+    :rtype: str
+    """
+    h = int(s/60/60)
+    m = int(s/60)
+    return f"{h}h{m}m{s:.3f}s"
 
 def output_results(instance_name, solver_name, solver_version, num_workers, num_cores, wall_time, time_limit, graph, coloring):
+    """
+    Output results of an instance to file.
+
+    :param solver_name: Solver description (heuristics used, parallelization library)
+    :type solver_name: str
+    :param solver_version: Solver version (vM.m.p)
+    :type solver_version: str
+    :param num_workers: Number of MPI ranks used
+    :type num_workers: int
+    :param num_cores: Number of cores available to each rank
+    :type num_cores: int
+    :param wall_time: Total execution time in seconds
+    :type wall_time: int
+    :param time_limit: Execution time limit in seconds 
+    :type time_limit: int
+    :param graph: Instance graph
+    :type graph: Graph
+    :param coloring: List of colors (index is node, value is color) forming a proper coloring of the graph 
+    :type coloring: list[int]
+    """
     # Get file name without path and extension
     instance_file = instance_name.split('/')[-1].split('.')[0]
     output_file = f"../results/{instance_file}.output"
@@ -70,8 +112,6 @@ def output_results(instance_name, solver_name, solver_version, num_workers, num_
         f.write(f"wall_time_sec: {wall_time}\n")
         f.write(f"is_within_time_limit: {wall_time <= time_limit}\n")
 
-        # Normalise color ids from 0 to num_colors-1
-        coloring = [sorted(list(set(coloring))).index(c) for c in coloring]
         f.write(f"number_of_colors: {len(set(coloring))}\n")
         
         # Write vertex-color assignments
