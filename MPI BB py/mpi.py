@@ -1,7 +1,5 @@
 from mpi4py import MPI
 import time
-from os import listdir, stat
-from os.path import isfile, join
 
 from threading import Thread, Condition, Event, Lock
 
@@ -36,6 +34,7 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 nodesPerSlave = 5
+coresPerSlave = 32
 
 # Branch parameters
 worsenTolerance = 1
@@ -274,8 +273,8 @@ def branch_and_bound_parallel(graph, time_limit=10000):
 def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
-    graph.set_coloring_algorithm(Parallel_BacktrackingDSatur(time_limit=0.6, num_workers=5))
-    graph.set_clique_algorithm(ParallelDLS(num_workers=5, lambda_max_steps=10, dls_instance=DLSIncreasingPenalty()))
+    graph.set_coloring_algorithm(Parallel_BacktrackingDSatur(time_limit=0.6, num_workers=coresPerSlave))
+    graph.set_clique_algorithm(ParallelDLS(num_workers=coresPerSlave, lambda_max_steps=10, dls_instance=DLSIncreasingPenalty()))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     start_time = time.time()
@@ -296,7 +295,7 @@ def solve_instance_parallel(filename, time_limit):
             solver_name="MPI_DSatur_DLS",
             solver_version="v1.0.1",
             num_workers=size,
-            num_cores=1,
+            num_cores=coresPerSlave,
             wall_time=wall_time,
             time_limit=time_limit,
             graph=graph,

@@ -1,1 +1,0 @@
-# For the MPI implementation results
