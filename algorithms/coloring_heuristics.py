@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 import time
+from concurrent.futures import ThreadPoolExecutor
 import random
 
 class ColoringHeuristic(ABC):
@@ -155,3 +156,19 @@ class BacktrackingDSatur(ColoringHeuristic):
         backtrack(coloring)
         # print(msg, f"; final={self.best_num_colors} ; final_Len={len(set(self.best_coloring))}")
         return self.best_coloring
+
+class Parallel_BacktrackingDSatur(BacktrackingDSatur):
+    def __init__(self, time_limit, num_workers):
+        super().__init__(time_limit)
+        self.num_workers = num_workers
+        
+    def find_coloring(self, graph, uf, added_edges):
+        with ThreadPoolExecutor(max_workers=self.num_workers) as pool:
+            results = pool.map(super().find_coloring,
+                            [graph] * self.num_workers,
+                            [uf] * self.num_workers, 
+                            [added_edges] * self.num_workers)
+            
+        # Return the best coloring found
+        return min(results, key=lambda c: len(set(c)))
+        
