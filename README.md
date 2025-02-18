@@ -27,8 +27,11 @@ A parallel branch-and-bound solver for determining the chromatic number of a gra
 ### Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/
+   git clone https://github.com/Rudolfovoorg/EuroHPC_Student_Challenge_2025_Team_3.git
    cd [name]
+   ```
+2. Install requirements:
+   pip install -r requirements.txt
 
 ## Usage 
 

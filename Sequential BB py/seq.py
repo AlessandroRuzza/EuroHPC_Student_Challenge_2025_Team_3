@@ -29,11 +29,24 @@ from algorithms.branching_strategies import *
 # lb - lower bound
 # ub - upper bound
 def branch_and_bound(graph, time_limit=10000):
+    """
+    Implementation of a sequential branch and bound algorithm for the graph coloring problem
+
+    :param graph: graph to solve
+    :type graph: Graph
+    :param time_limit: time limit in seconds
+    :type time_limit: int
+    """
+
+
     start_time = time.time()
+    
+    # Initializations
     n = len(graph)
     initial_uf = UnionFind(n)
     initial_edges = set()
 
+    # Initial upper and lower bounds
     lb = len(graph.find_max_clique(initial_uf, initial_edges))
     ub = len(set(graph.find_coloring(initial_uf, initial_edges)))
 
@@ -49,34 +62,42 @@ def branch_and_bound(graph, time_limit=10000):
     print(f"Starting UB, LB:  {ub, lb}")
 
     while queue:
-
         current_ub, node = heapq.heappop(queue)
         current_lb = node.lb
+
+        # Pruning
         if node.lb >= best_ub:
             continue
+        
+        # Improvements
         if current_ub < best_ub:
             print(f"IMPROVED UB! {current_ub} Time: {time.time() - start_time}")
             best_ub = current_ub
         if current_lb > best_lb:
             print(f"IMPROVED LB! {current_lb} Time: {time.time() - start_time}")
             best_lb = current_lb
+        
+        # Solution found
         if node.lb == best_ub:
             break
-
+        
+        # Time limit reached
         if (time.time() - start_time) > time_limit:
             is_over_time_limit = True
             continue
 
+        ### Branching
         u, v = graph.find_pair(node.union_find, node.added_edges)
         if u is None:  # No pair found
             continue
 
 
-        # Branch 1: same color (skip if assignment is invalid)
+        # Branch 1: same color
         color_u = node.union_find.find(u)
         color_v = node.union_find.find(v)
         doBranch1 = True
         
+        # Do not create branch if assignment is already invalid
         for neighbor in graph.adj_list[u]:
             color_n = node.union_find.find(neighbor)
             if(color_n == color_v):
@@ -119,18 +140,28 @@ def branch_and_bound(graph, time_limit=10000):
 ##########################################################################################
 
 def solve_instance(filename, timeLimit):
+    """
+    Solve a single instance using a sequential branch and bound algorithm within the time limit
+
+    :param filename: instance to solve
+    :type filename: str
+    :param timeLimit: time limit in seconds
+    :type timeLimit: int
+    :return: True if the solution is valid and the time limit was not exceeded, False otherwise
+    :rtype: bool
+    """
     graph = parse_col_file(filename)
 
     # Configuration parameters
     solver_name = "sequential_DSatur_DLS_DegreeBranching"
     solver_version = "v1.0.1"
 
-    # Set up algorithms
+    # Set up heuristics
     graph.set_coloring_algorithm(DSatur())
     graph.set_clique_algorithm(ParallelDLS(dls_instance=DLS()))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
-    # MPI parameters
+    # MPI parameters (not used in this version)
     num_workers = 1
     num_cores = 1
 
@@ -189,20 +220,7 @@ def main():
 
     instance = sys.argv[1]
     
-    # longest instances: 
-    #   fpsol2  (27.7s)
-    #   inithx  (>10k s)
-    #   queen*  (> s)
-    #   all "myciel*" instances solved to optimality, but the lb is never improved (due to maxClique = 2, chromatic number > 2)
-    #       so they keep running until the time limit (or all possible combinations are assigned in nodes)
-    #   
-
-    # Idea? Order branch queue by (ub - lb) instead of just ub ?
-
     print(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
-
-    #  To clear instances solved
-    # os.remove("solved_instances.txt") 
 
     timeLimit = 10000
 

@@ -83,12 +83,26 @@ class BranchAndBoundNode:
         return self.ub < other.ub
 
 class Graph:
+    """
+    Class containing all information about the graph instance.
+    """
 
-    # Constructor
     def __init__(self, num_nodes, 
                  coloring_algorithm=DSatur(), 
                  clique_algorithm=DLS(),
                  branching_strategy=SaturationBranchingStrategy()):
+        """
+        Constructor.
+
+        :param num_nodes: Number of vertices in the graph
+        :type num_nodes: int
+        :param coloring_algorithm: Heuristic used to approximate the upper bound for the chromatic number
+        :type coloring_algorithm: ColoringHeuristic
+        :param clique_algorithm: Heuristic used to approximate the lower bound for the chromatic number
+        :type clique_algorithm: MaxCliqueHeuristic
+        :param branching_strategy: Heuristic used to branch nodes for this graph instance
+        :type branching_strategy: BranchingStrategy
+        """
         self.num_nodes = num_nodes
         self.adj_list = defaultdict(list)
         self.coloring_algorithm = coloring_algorithm
@@ -100,41 +114,120 @@ class Graph:
     ##### Graph operations
 
     def add_edge(self, u, v):
+        """
+        Add an edge between nodes u and v
+
+        :param u: a node of the graph
+        :type u: int
+        :param v: a node of the graph
+        :type v: int
+        """
         if v not in self.adj_list[u]:
             self.adj_list[u].append(v)
             self.adj_list[v].append(u)
 
     def is_connected(self, u, v):
+        """
+        Returns true if an edge connecting u and v exists in this graph
+
+        :param u: a node of the graph
+        :type u: int
+        :param v: a node of the graph
+        :type v: int
+        :return: true if an edge connecting u and v exists in this graph
+        :rtype: bool
+        """
         return v in self.adj_list[u]
 
     def degree(self, node):
+        """
+        Returns the degree of the node parameter 
+        (min 1 as all nodes are connected to themselves)
+
+        :param node: a node of the graph
+        :type node: int
+        :return: degree of the node parameter
+        :rtype: int
+        """
         return len(self.adj_list[node])+1 # +1 Because every node is adj to itself
 
 
     ##### Coloring and clique algorithms
 
     def set_coloring_algorithm(self, algorithm):
+        """
+        Set the coloring heuristic.
+
+        :param coloring_algorithm: Heuristic used to approximate the upper bound for the chromatic number
+        :type coloring_algorithm: ColoringHeuristic
+        """
         self.coloring_algorithm = algorithm
 
     def set_clique_algorithm(self, algorithm):
+        """
+        Set the Max Clique heuristic.
+        
+        :param clique_algorithm: Heuristic used to approximate the lower bound for the chromatic number
+        :type clique_algorithm: MaxCliqueHeuristic
+        """
         self.clique_algorithm = algorithm
 
     def set_branching_strategy(self, strategy):
+        """
+        Set the Branching heuristic.
+
+        :param branching_strategy: Heuristic used to branch nodes for this graph instance
+        :type branching_strategy: BranchingStrategy
+        """
         self.branching_strategy = strategy
 
     def find_coloring(self, union_find, added_edges):
+        """
+        Uses the graph's coloring heuristic to find a proper coloring of the graph, then returns it.
+        
+        :param graph: Graph to color
+        :type graph: Graph
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: List of edges to add to the graph
+        :type added_edges: list
+        :return: Coloring of the graph as a list where index is node and value is color
+        :rtype: list
+        """
         if self.coloring_algorithm is None:
             raise ValueError("No coloring algorithm set")
 
         return self.coloring_algorithm.find_coloring(self, union_find, added_edges)
 
     def find_max_clique(self, union_find, added_edges):
+        """
+        Uses the graph's Max Clique heuristic to find a set of nodes that form the maximum clique of the graph, then returns it.
+
+        :param graph: The graph to find the maximum clique in
+        :type graph: Graph
+        :param union_find: Data structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: Data structure to keep track of vertices with different colors
+        :type added_edges: list
+        :return: Set of nodes that form the maximum clique
+        :rtype: set
+        """
         if self.clique_algorithm is None:
             raise ValueError("No clique algorithm set")
 
         return self.clique_algorithm.find_max_clique(self, union_find, added_edges)
 
     def find_pair(self, union_find, added_edges):
+        """
+        Uses the graph's Branching heuristic to find a pair of nodes to branch on, then returns it.
+
+        :param union_find: Data structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: Data structure to keep track of vertices with different colors
+        :type added_edges: list
+        :return: Pair of best nodes to branch on
+        :rtype: set
+        """
         if self.branching_strategy is None:
             raise ValueError("No branching strategy set")
 
@@ -145,14 +238,36 @@ class Graph:
 
 
     def __len__(self):
+        """
+        :return: Number of nodes in the graph
+        :rtype: int
+        """
         return self.num_nodes
 
     def __str__(self):
+        """
+        String format: <br>
+        0: \<adj_list of node 0\>  <br>
+        1: \<adj_list of node 1\>  <br>
+        2: \<adj_list of node 2\>  <br>
+        etc. for each node in the graph
+
+        :return: Graph adjacency list as a string.
+        :rtype: int
+        """
         return "\n".join(f"{node}: {neighbors}" for node, neighbors in self.adj_list.items())
 
     ##### Coloring validation
 
     def validate(self, coloring):
+        """
+        Validates a coloring by checking the whole graph for conflicts.
+
+        :param coloring: color assignment (index is node, value is color)
+        :type coloring: list[int]
+        :return: True if the coloring is proper.
+        :rtype: bool
+        """
         for node in range(self.num_nodes):
             color = coloring[node]
             neighbors = list(i for i in self.adj_list[node])
@@ -162,8 +277,3 @@ class Graph:
                 bad = next(n for n in range(len(neighborColors)) if neighborColors[n] == color)
                 return f"FALSE. Incorrect coloring ({node+1}={color},{neighbors[bad]+1}={coloring[bad]})"
         return "TRUE."
-
-    def correct_coloring_check(self, node, color, coloring):
-        neighborColors = (coloring[i] for i in self.adj_list[node])
-        return not color in neighborColors
-
