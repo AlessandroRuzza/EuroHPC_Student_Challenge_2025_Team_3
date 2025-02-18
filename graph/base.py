@@ -51,11 +51,12 @@ class UnionFind:
 
 class BranchAndBoundNode:
     """
-    Node for the branch and bound algorithm
+    Node for the branch and bound algorithm.
+    Nodes have an id purely for logging purposes.
     """
     def __init__(self, union_find, added_edges, lb, ub):
         """
-        Constructor for the BranchAndBoundNode class
+        Constructor for the BranchAndBoundNode class.
 
         :param union_find: Data structure to keep track of vertex colors
         :type union_find: UnionFind
@@ -66,6 +67,7 @@ class BranchAndBoundNode:
         :param ub: Upper bound of the node
         :type ub: int
         """
+        self.id = -1
         self.union_find = union_find
         self.added_edges = set(added_edges)
         self.lb = lb

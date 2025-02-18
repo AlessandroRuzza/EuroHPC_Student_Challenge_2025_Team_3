@@ -24,6 +24,50 @@ def generate_random_graph(num_nodes, density):
 
     return graph
 
+class Log():
+    """
+    Log class to handle node intermediate clique and coloring logging
+    """
+    def __init__(self, filepath):
+        """
+        Constructor.
+
+        :param filepath: path of log file for output
+        :type filepath: str
+        """
+        self.log = ""
+        self.filepath = filepath
+
+    def append(self, s):
+        """
+        Appends a string to the log.
+
+        :param s: any string
+        :type s: str
+        """
+        self.log += s
+
+    def __str__(self):
+        """
+        Cast Log object to string by returning internal log string.
+        
+        :return: log string
+        :rtype: str
+        """
+        return self.log
+
+    def printToFile(self, path=""):
+        """
+        Output log to file.
+
+        :param path: optional file path, that will be saved for future calls
+        :type path: str
+        """
+        if path != "":
+            self.filepath = path
+
+        with open(self.filepath, "w") as out:
+            out.write(self.log)
 
 # Parse a .col file and return a graph
 def parse_col_file(file_path):

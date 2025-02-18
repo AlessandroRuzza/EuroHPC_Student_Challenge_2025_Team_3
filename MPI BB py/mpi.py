@@ -14,7 +14,7 @@ sys.path.append(str(utilities_dir.parent))
 sys.path.append(str(graph_dir.parent))
 sys.path.append(str(algorithms_dir.parent))
 
-from utilities.utils import parse_col_file, output_results
+from utilities.utils import parse_col_file, output_results, Log
 
 from graph.base import *
 
@@ -44,6 +44,9 @@ coresPerSlave = 32
 worsenTolerance = 1
 minQueueLenForPruning = size*2 * nodesPerSlave
 
+# Logging parameters
+log_file_path = "./log"
+log = Log(log_file_path)
 
 def printDebugSlave(str):
     """
@@ -126,9 +129,17 @@ def branch_node(graph, node):
         uf1 = deepcopy(node.union_find)
         uf1.union(u, v)
         edges1 = deepcopy(node.added_edges)
-        lb1 = len(graph.find_max_clique(uf1, edges1))
-        ub1 = len(set(graph.find_coloring(uf1, edges1)))
+
+        clique = graph.find_max_clique(uf1, edges1)
+        lb1 = len(clique)
+
+        coloring = graph.find_coloring(uf1, edges1)
+        ub1 = len(set(coloring))
         childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1))
+        log.append(f"Node {node.id} branched by imposing {u}, {v} have the same color \n")
+        log.append(f"Branch 1 child node results: \n")
+        log.append(f"Clique (LB = {lb1}) = {clique}\n")
+        log.append(f"Coloring (UB = {ub1}) = {coloring}\n\n")
 
     # Branch 2: Different color
     uf2 = deepcopy(node.union_find)
@@ -136,9 +147,17 @@ def branch_node(graph, node):
     ru = uf2.find(u)
     rv = uf2.find(v)
     edges2.add((ru, rv))
-    lb2 = len(graph.find_max_clique(uf2, edges2))
-    ub2 = len(set(graph.find_coloring(uf2, edges2)))
+
+    clique = graph.find_max_clique(uf2, edges2)
+    lb2 = len(clique)
+    coloring = graph.find_coloring(uf2, edges2)
+    ub2 = len(set(coloring))
     childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2))
+
+    log.append(f"Node {node.id} branched by imposing vertices {u}, {v} have different colors\n")
+    log.append(f"Branch 2 child node results: \n")
+    log.append(f"Clique (LB = {lb2}) = {clique}\n")
+    log.append(f"Coloring (UB = {ub2}) = {coloring}\n\n")
 
     return childNodes
 
@@ -146,7 +165,7 @@ def handle_slave(graph, slaveRank,
                  queueLock: Condition, queue: list[BranchAndBoundNode],
                  best_ub_lock: Condition, best_ub, best_lb, best_coloring: list,
                  optimalEvent: Event, timeoutEvent: Event, 
-                 start_time, time_limit):
+                 start_time, time_limit, shared_node_id):
     
     """
     Manages the slave process from the master process in a parallel branch and bound algorithm. 
@@ -176,6 +195,8 @@ def handle_slave(graph, slaveRank,
     :type start_time: float
     :param time_limit: The time limit for the computation in seconds.
     :type time_limit: int
+    :param shared_node_id: Id of the last node extracted from queue. shared_node_id[0] is the id.
+    :type shared_node_id: list[int]
     """
 
     flag = True
@@ -209,7 +230,10 @@ def handle_slave(graph, slaveRank,
             numNodes = min(len(queue), nodesPerSlave)
             nodes = []
             for _ in range(numNodes):
-                nodes.append(queue.pop(0))
+                node = queue.pop(0)
+                node.id = shared_node_id[0]
+                shared_node_id[0] += 1
+                nodes.append(node)
         
         pruneNodes = []
         optimalFound = False
@@ -298,13 +322,14 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode],
     best_lb = [best_lb,]
     optimalEvent = Event()
     timeoutEvent = Event()
+    shared_node_id = [0,]
 
     for slaveRank in range(1, size):
         slaveHandlers.append(Thread(daemon=True, target=handle_slave, 
                                     args=(graph,slaveRank, queueLock,queue, 
                                           best_ub_lock,best_ub,best_lb,best_coloring, 
                                           optimalEvent,timeoutEvent, 
-                                          start_time,time_limit)))
+                                          start_time,time_limit, shared_node_id)))
 
     for slave in slaveHandlers:
         slave.start()
@@ -369,7 +394,8 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         initial_edges = set()
 
         # Find initial lower bound and upper bound
-        lb = len(graph.find_max_clique(initial_uf, initial_edges))
+        initial_clique = graph.find_max_clique(initial_uf, initial_edges)
+        lb = len(initial_clique)
         cliqueTime = time.time() - start_time
         initial_coloring = graph.find_coloring(initial_uf, initial_edges)
         ub = len(set(initial_coloring))
@@ -379,6 +405,12 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         best_ub = ub
         best_lb = lb
         queue = []
+
+        log.append(f"NOTE: the nodes in the log may be out of order. Refer to the IDs\n")
+        log.append(f"      the ID indicates the order of extraction from the queue. \n\n")
+        log.append(f"Root Node: \n")
+        log.append(f"Clique (LB = {lb}) = {initial_clique}\n")
+        log.append(f"Coloring (UB = {ub}) = {initial_coloring}\n\n")
 
         print(f"Starting (UB, LB) = ({ub}, {lb})")
         print(f"Coloring time = {int(colorTime/60)}m {colorTime%60:.3f}s")
@@ -402,7 +434,7 @@ def solve_instance_parallel(filename, time_limit):
 
     # Set up heuristics
     graph.set_coloring_algorithm(Parallel_BacktrackingDSatur(time_limit=0.6, num_workers=coresPerSlave))
-    graph.set_clique_algorithm(ParallelDLS(num_workers=coresPerSlave, lambda_max_steps=10, dls_instance=DLSIncreasingPenalty()))
+    graph.set_clique_algorithm(ParallelDLS(num_workers=coresPerSlave, lambda_max_steps=10, dls_instance=DLS()))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
     start_time = time.time()
@@ -432,6 +464,8 @@ def solve_instance_parallel(filename, time_limit):
             coloring=best_coloring
         )
 
+    return chromatic_number, maxCliqueSize, best_coloring
+
 def main():
     """
     Main Function.
@@ -451,9 +485,23 @@ def main():
     time_limit = 10000
 
     printMaster(f"Solving {instance}...")
-    solve_instance_parallel(instance, time_limit)
+    chromatic_number, maxCliqueSize, best_coloring = solve_instance_parallel(instance, time_limit)
 
     comm.barrier() # Ensure all ranks finished
+
+    if rank > 0:
+        comm.send(log, 0)
+    else: # rank 0
+        for i in range(1, size):
+            otherLog = comm.recv(source=i)
+            log.append(otherLog.log)
+
+        log.append(f"Final results: \n")
+        log.append(f"Chromatic number = {chromatic_number} \n")
+        log.append(f"Max Clique Size = {maxCliqueSize} \n")
+        log.append(f"Is Optimal? {'YES' if chromatic_number == maxCliqueSize else 'UNKNOWN'} \n")
+        log.append(f"Best Coloring Found = {best_coloring} \n")
+        log.printToFile()
 
 if __name__ == "__main__":
     main()
