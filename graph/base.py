@@ -111,20 +111,22 @@ class Graph:
         self.clique_algorithm = clique_algorithm
         self.branching_strategy = branching_strategy
         self.best_ub = num_nodes
+        self.complG = None
 
     ##### Complement
 
     def complement(self):
-        complG = Graph(self.num_nodes, 
-                       self.coloring_algorithm,
-                       self.clique_algorithm,
-                       self.branching_strategy)
-        for a in range(self.num_nodes):
-            for b in range(self.num_nodes):
-                if not self.is_connected(a,b):
-                    complG.add_edge(a,b)
+        if self.complG is None:
+            self.complG = Graph(self.num_nodes, 
+                        self.coloring_algorithm,
+                        self.clique_algorithm,
+                        self.branching_strategy)
+            for a in range(self.num_nodes):
+                for b in range(self.num_nodes):
+                    if not self.is_connected(a,b):
+                        self.complG.add_edge(a,b)
 
-        return complG
+        return self.complG
 
     ##### Graph operations
 

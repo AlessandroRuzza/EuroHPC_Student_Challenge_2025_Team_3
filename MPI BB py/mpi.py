@@ -137,10 +137,6 @@ def branch_node(graph, node):
         coloring = graph.find_coloring(uf1, edges1)
         ub1 = len(set(coloring))
 
-        indep_num = coloring_to_independence_number(coloring)
-        indep_LB = len(graph) / indep_num
-        print(f"1 COL Indep. number LB = {indep_LB} ; Clique LB = {lb1}")
-
         COMPL_indep_num = len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
         print(f"COMPL Indep. number LB = {COMPL_indep_num} ; Clique LB = {lb1}")
 
@@ -149,7 +145,6 @@ def branch_node(graph, node):
         log.append(f"Node {node.id} branched by imposing {u}, {v} have the same color \n")
         log.append(f"Branch 1 child node results: \n")
         log.append(f"Clique (LB = {lb1}) = {clique}\n")
-        log.append(f"Indep. LB = {indep_LB}\n")
         log.append(f"Coloring (UB = {ub1}) = {coloring}\n\n")
 
     # Branch 2: Different color
@@ -164,9 +159,6 @@ def branch_node(graph, node):
     coloring = graph.find_coloring(uf2, edges2)
     ub2 = len(set(coloring))
 
-    indep_num = coloring_to_independence_number(coloring)
-    indep_LB = len(graph) / indep_num
-    print(f"2 COL Indep. number LB = {indep_LB} ; Clique LB = {lb2}")
     COMPL_indep_num = len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
     print(f"COMPL Indep. number LB = {COMPL_indep_num} ; Clique LB = {lb2}")
 
@@ -175,7 +167,6 @@ def branch_node(graph, node):
     log.append(f"Node {node.id} branched by imposing vertices {u}, {v} have different colors\n")
     log.append(f"Branch 2 child node results: \n")
     log.append(f"Clique (LB = {lb2}) = {clique}\n")
-    log.append(f"Indep. LB = {indep_LB}\n")
     log.append(f"Coloring (UB = {ub2}) = {coloring}\n\n")
 
     return childNodes
@@ -368,7 +359,7 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode],
     # Run one thread that solves nodes in this process? (to not waste resources)
     return best_ub[0], best_lb[0], best_coloring
 
-def slave_branch_and_bound(graph):
+def slave_branch_and_bound(graph, start_time, time_limit):
     """
     Process executed by the slave that receives nodes from master, computes their lower bounds and upper bounds, and sends back the results
     
@@ -387,6 +378,8 @@ def slave_branch_and_bound(graph):
         graph.best_ub = best_ub
         childNodes = []
         for node in nodes:
+            if time.time() - start_time >= time_limit:
+                break
             # Run node
             for child in branch_node(graph, node):
                 childNodes.append(child)
@@ -403,11 +396,11 @@ def branch_and_bound_parallel(graph, time_limit=10000):
     :param time_limit: time limit in seconds
     :type time_limit: int
     """
+    start_time = time.time()
     
     if rank==0:
 
         # Initializations
-        start_time = time.time()
         n = len(graph)
         initial_uf = UnionFind(n)
         initial_edges = set()
@@ -419,9 +412,6 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         initial_coloring = graph.find_coloring(initial_uf, initial_edges)
         ub = len(set(initial_coloring))
         colorTime = time.time() - (start_time+cliqueTime)
-        
-        indep_num = coloring_to_independence_number(initial_coloring)
-        print(f"Indep. number LB = {len(graph) / indep_num}")
 
         # Shared best upper bound
         best_ub = ub
@@ -440,7 +430,7 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub))
         return master_branch_and_bound(graph, queue, best_ub, best_lb, initial_coloring, start_time, time_limit)
     else:
-        slave_branch_and_bound(graph)
+        slave_branch_and_bound(graph, start_time, time_limit)
         return None, None, None
 
 def solve_instance_parallel(filename, time_limit):
