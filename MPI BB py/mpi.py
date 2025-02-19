@@ -446,7 +446,7 @@ def solve_instance_parallel(filename, time_limit):
         if maxCliqueSize < chromatic_number: 
             print(f"MaxClique found = {maxCliqueSize}")
         print(f"Time: {int(wall_time/60)}m {wall_time%60}s")
-        print(f"Is Valid? {graph.validate(best_coloring)}")
+        print(f"Is Valid? {graph.validate_coloring(best_coloring)}")
 
         if wall_time >= time_limit:
             print("TIMED OUT.")

@@ -169,7 +169,7 @@ def solve_instance(filename, timeLimit):
     best_lb, best_ub, bestColoring, isOverTimeLimit = branch_and_bound(graph, timeLimit)
     wall_time = int(time.time() - start_time)
 
-    isValid = graph.validate(bestColoring)
+    isValid = graph.validate_coloring(bestColoring)
 
     # Output results
     output_results(
@@ -188,7 +188,6 @@ def solve_instance(filename, timeLimit):
         print(f"Optimal solution! Chromatic number = {best_ub}")
     else:
         print(f"Best (LB,UB) = ({best_lb},{best_ub})")
-    isValid = graph.validate(bestColoring)
 
     print(f"Is valid? {isValid}")
     print(f"Passed time limit? {isOverTimeLimit}")

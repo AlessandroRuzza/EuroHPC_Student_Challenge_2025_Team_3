@@ -193,6 +193,7 @@ class Graph:
         :type union_find: UnionFind
         :param added_edges: List of edges to add to the graph
         :type added_edges: list
+        :raise ValueError: if the coloring algorithm is not set
         :return: Coloring of the graph as a list where index is node and value is color
         :rtype: list
         """
@@ -211,6 +212,7 @@ class Graph:
         :type union_find: UnionFind
         :param added_edges: Data structure to keep track of vertices with different colors
         :type added_edges: list
+        :raise ValueError: if the clique algorithm is not set
         :return: Set of nodes that form the maximum clique
         :rtype: set
         """
@@ -227,6 +229,7 @@ class Graph:
         :type union_find: UnionFind
         :param added_edges: Data structure to keep track of vertices with different colors
         :type added_edges: list
+        :raise ValueError: if the branching strategy is not set
         :return: Pair of best nodes to branch on
         :rtype: set
         """
@@ -259,14 +262,37 @@ class Graph:
         """
         return "\n".join(f"{node}: {neighbors}" for node, neighbors in self.adj_list.items())
 
-    ##### Coloring validation
+    ##### Validation
 
-    def validate(self, coloring):
+    def validate_max_clique(self, clique):
+        """
+        Validates that the given set of nodes forms a max clique.
+
+        :param clique: set containing max clique
+        :type clique: set[int]
+        :raise ValueError: if the clique is not valid.
+        :return: True if the clique is proper.
+        :rtype: bool
+        """
+
+        for i in clique:
+            for j in clique:
+                if i == j:
+                    continue
+                if not self.is_connected(i, j):
+                    raise ValueError(f"Incorrect clique found. The nodes {i} and {j} are not connected.")
+        return True
+
+                
+
+
+    def validate_coloring(self, coloring):
         """
         Validates a coloring by checking the whole graph for conflicts.
 
         :param coloring: color assignment (index is node, value is color)
         :type coloring: list[int]
+        :raise ValueError: if the coloring is not valid
         :return: True if the coloring is proper.
         :rtype: bool
         """
@@ -277,5 +303,20 @@ class Graph:
 
             if color in neighborColors:
                 bad = next(n for n in range(len(neighborColors)) if neighborColors[n] == color)
-                return f"FALSE. Incorrect coloring ({node+1}={color},{neighbors[bad]+1}={coloring[bad]})"
-        return "TRUE."
+                raise ValueError(f"Incorrect coloring ({node+1}={color},{neighbors[bad]+1}={coloring[bad]})")
+        return True
+
+    def validate(self, coloring, clique):
+        """
+        Validates if the heuristics used return a valid coloring and clique
+
+        :param coloring: color assignment (index is node, value is color)
+        :type coloring: list[int]
+        :param clique: set containing max clique
+        :type clique: set[int]
+        :raise ValueError: if one of the solutions are not valid
+        :return: True if the solutions found are valid
+        :rtype: bool
+        """
+        print("yooo")
+        return self.validate_coloring(coloring) and self.validate_max_clique(clique)
