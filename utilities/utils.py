@@ -119,7 +119,7 @@ def secondsAsStr(s):
     m = int(s/60)
     return f"{h}h{m}m{s:.3f}s"
 
-def output_results(instance_name, solver_name, solver_version, num_workers, num_cores, wall_time, time_limit, graph, coloring):
+def output_results(instance_name, solver_name, solver_version, num_workers, num_cores, wall_time, time_limit, graph, coloring, maxCliqueSize):
     """
     Output results of an instance to file.
 
@@ -139,6 +139,8 @@ def output_results(instance_name, solver_name, solver_version, num_workers, num_
     :type graph: Graph
     :param coloring: List of colors (index is node, value is color) forming a proper coloring of the graph 
     :type coloring: list[int]
+    :param maxCliqueSize: Best lower bound found
+    :type maxCliqueSize: int
     """
     # Get file name without path and extension
     instance_file = instance_name.split('/')[-1].split('.')[0]
@@ -157,6 +159,7 @@ def output_results(instance_name, solver_name, solver_version, num_workers, num_
         f.write(f"is_within_time_limit: {wall_time <= time_limit}\n")
 
         f.write(f"number_of_colors: {len(set(coloring))}\n")
+        f.write(f"max_clique_size: {maxCliqueSize}\n")
         
         # Write vertex-color assignments
         for vertex in range(graph.num_nodes):

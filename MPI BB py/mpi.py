@@ -474,7 +474,8 @@ def solve_instance_parallel(filename, time_limit):
             wall_time=wall_time,
             time_limit=time_limit,
             graph=graph,
-            coloring=best_coloring
+            coloring=best_coloring,
+            maxCliqueSize=maxCliqueSize
         )
 
     return chromatic_number, maxCliqueSize, best_coloring
