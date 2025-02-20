@@ -136,9 +136,9 @@ def branch_node(graph, node):
         coloring = graph.find_coloring(uf1, edges1)
         ub1 = len(set(coloring))
 
-        COMPL_indep_num = len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
-        printConditional(f"1 COMPL Indep. number LB = {COMPL_indep_num} ; Clique LB = {lb1}",
-                         COMPL_indep_num != lb1 and debugBounds)
+        complement_LB = len(graph) / len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
+        printConditional(f"1 Complement LB = {complement_LB} ; Clique LB = {lb1}",
+                         complement_LB != lb1 and debugBounds)
 
 
         childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1))
@@ -159,9 +159,9 @@ def branch_node(graph, node):
     coloring = graph.find_coloring(uf2, edges2)
     ub2 = len(set(coloring))
 
-    COMPL_indep_num = len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
-    printConditional(f"2 COMPL Indep. number LB = {COMPL_indep_num} ; Clique LB = {lb2}",
-                     COMPL_indep_num != lb2 and debugBounds)
+    complement_LB = len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
+    printConditional(f"2 Complement LB = {complement_LB} ; Clique LB = {lb2}",
+                     complement_LB != lb2 and debugBounds)
 
     childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2))
 
