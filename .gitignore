@@ -12,9 +12,8 @@ __pycache__/
 **/*.graph
 *.graph
 **/graph.png
+**/results/[^s][^c][^r][^i][^p]*
 **/results/*.output
-**/results/2h*
-solved_instances*.txt
 
 # Local Libs
 Libraries/

@@ -103,7 +103,7 @@ def branch_node(graph, node):
     # Find a pair of nodes to branch on
     u, v = graph.find_pair(node.union_find, node.added_edges)
     if u is None:
-        return None
+        return []
     
     childNodes = []
 
