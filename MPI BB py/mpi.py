@@ -3,6 +3,9 @@ import time
 
 from threading import Thread, Condition, Event, Lock
 
+from os.path import isdir
+from os import mkdir
+
 import sys
 from pathlib import Path
 
@@ -45,8 +48,8 @@ worsenTolerance = 1
 minQueueLenForPruning = size*2 * nodesPerSlave
 
 # Logging parameters
-log_file_path = "./log"
-log = Log(log_file_path)
+outLogFolder = "../results/logs/"
+log = Log(outLogFolder + "log")
 
 def printDebugSlave(str):
     """
@@ -493,10 +496,17 @@ def main():
         sys.exit(1)
         
     instance = sys.argv[1]
+    
+    outLogFile = f"{outLogFolder}{instance.split('/')[2]}.log"
+    log.filepath = outLogFile
 
+    if not isdir(outLogFolder) and rank==0:
+        mkdir(outLogFolder)
+
+    
     printMaster(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
     
-    time_limit = 10000
+    time_limit = 10000-100
 
     printMaster(f"Solving {instance}...")
     chromatic_number, maxCliqueSize, best_coloring = solve_instance_parallel(instance, time_limit)
