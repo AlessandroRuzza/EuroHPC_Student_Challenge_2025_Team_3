@@ -144,7 +144,7 @@ def branch_node(graph, node):
                          complement_LB != lb1 and debugBounds)
 
 
-        childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1))
+        childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1, coloring))
         log.append(f"Node {node.id} branched by imposing {u}, {v} have the same color \n")
         log.append(f"Branch 1 child node results: \n")
         log.append(f"Clique (LB = {lb1}) = {clique}\n")
@@ -166,7 +166,7 @@ def branch_node(graph, node):
     printConditional(f"2 Complement LB = {complement_LB} ; Clique LB = {lb2}",
                      complement_LB != lb2 and debugBounds)
 
-    childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2))
+    childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2, coloring))
 
     log.append(f"Node {node.id} branched by imposing vertices {u}, {v} have different colors\n")
     log.append(f"Branch 2 child node results: \n")
@@ -260,7 +260,7 @@ def handle_slave(graph, slaveRank,
                 if node.ub < best_ub[0]:
                     printDebugBounds(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
                     best_coloring.clear()
-                    best_coloring.extend(graph.find_coloring(node.union_find, node.added_edges))
+                    best_coloring.extend(node.coloring)
                     best_ub[0] = node.ub
                 if node.lb > best_lb[0]:
                     printDebugBounds(f"Slave {slaveRank} improved LB = {node.lb} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
@@ -431,7 +431,7 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         print(f"Starting (UB, LB) = ({ub}, {lb})")
         print(f"Coloring time = {int(colorTime/60)}m {colorTime%60:.3f}s")
         print(f"Clique time = {int(cliqueTime/60)}m {cliqueTime%60:.3f}s")
-        queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub))
+        queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub, initial_coloring))
         return master_branch_and_bound(graph, queue, best_ub, best_lb, initial_coloring, start_time, time_limit)
     else:
         slave_branch_and_bound(graph, start_time, time_limit)

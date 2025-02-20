@@ -54,7 +54,7 @@ class BranchAndBoundNode:
     Node for the branch and bound algorithm.
     Nodes have an id purely for logging purposes.
     """
-    def __init__(self, union_find, added_edges, lb, ub):
+    def __init__(self, union_find, added_edges, lb, ub, coloring):
         """
         Constructor for the BranchAndBoundNode class.
 
@@ -72,6 +72,7 @@ class BranchAndBoundNode:
         self.added_edges = set(added_edges)
         self.lb = lb
         self.ub = ub
+        self.coloring = coloring
 
     def __lt__(self, other):
         """
