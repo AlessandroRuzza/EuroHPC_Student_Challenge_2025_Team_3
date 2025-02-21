@@ -446,6 +446,7 @@ def solve_instance_parallel(filename, time_limit):
     :param timeLimit: time limit in seconds
     :type timeLimit: int
     """
+    start_time = time.time()
     graph = parse_col_file(filename)
 
     # Set up heuristics
@@ -453,7 +454,6 @@ def solve_instance_parallel(filename, time_limit):
     graph.set_clique_algorithm(ParallelDLS(num_workers=coresPerSlave, lambda_max_steps=10, dls_instance=DLS()))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
-    start_time = time.time()
     chromatic_number, maxCliqueSize, best_coloring = branch_and_bound_parallel(graph, time_limit)
     wall_time = int(time.time() - start_time)
 
