@@ -1,0 +1,13 @@
+MPI size = 32
+Starting at: 12:42:35
+
+Solving ../instances/school1.col...
+Starting (UB, LB) = (17, 14)
+Coloring time = 0m 10.004s
+Clique time = 0m 33.172s
+Slave 1 improved UB = 15 Time = 11m 28.170s
+Slave 4 improved UB = 14 Time = 29m 22.423s
+Chromatic number for ../instances/school1.col: 14
+Time: 35m 28s
+Is Valid? TRUE.
+

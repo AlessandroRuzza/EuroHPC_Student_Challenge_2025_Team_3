@@ -1,0 +1,11 @@
+MPI size = 8
+Starting at: 22:41:17
+
+Solving ../instances/mulsol.i.1.col...
+Starting (UB, LB) = (49, 49)
+Coloring time = 0m 2.078s
+Clique time = 0m 27.901s
+Chromatic number for ../instances/mulsol.i.1.col: 49
+Time: 0m 29s
+Is Valid? TRUE.
+

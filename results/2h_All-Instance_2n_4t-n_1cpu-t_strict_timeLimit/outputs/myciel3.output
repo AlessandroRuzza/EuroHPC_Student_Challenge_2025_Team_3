@@ -1,0 +1,23 @@
+problem_instance_file_name: myciel3.col
+cmd_line: mpirun -n 8 MPI_BacktrackingDSatur_DLS myciel3.col
+solver_version: v1.0.1
+number_of_vertices: 11
+number_of_edges: 40
+time_limit_sec: 10000
+number_of_worker_processes: 8
+number_of_cores_per_worker: 32
+wall_time_sec: 10002
+is_within_time_limit: False
+number_of_colors: 4
+max_clique_size: 2
+1 1
+2 0
+3 1
+4 0
+5 2
+6 1
+7 2
+8 1
+9 3
+10 2
+11 0

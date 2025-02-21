@@ -1,0 +1,11 @@
+MPI size = 32
+Starting at: 12:42:43
+
+Solving ../instances/fpsol2.i.1.col...
+Starting (UB, LB) = (65, 65)
+Coloring time = 0m 10.015s
+Clique time = 0m 40.774s
+Chromatic number for ../instances/fpsol2.i.1.col: 65
+Time: 0m 50s
+Is Valid? TRUE.
+

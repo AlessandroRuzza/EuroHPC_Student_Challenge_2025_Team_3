@@ -1,0 +1,9 @@
+MPI size = 32
+Starting at: 19:19:03
+
+Solving ../instances/inithx.i.3.col...
+Starting (UB, LB) = (31, 28)
+Chromatic number for ../instances/inithx.i.3.col: 31
+Time: 0m 9s
+Is Valid? TRUE.
+

@@ -1,0 +1,11 @@
+MPI size = 32
+Starting at: 12:42:36
+
+Solving ../instances/zeroin.i.1.col...
+Starting (UB, LB) = (49, 49)
+Coloring time = 0m 10.004s
+Clique time = 0m 14.930s
+Chromatic number for ../instances/zeroin.i.1.col: 49
+Time: 0m 24s
+Is Valid? TRUE.
+

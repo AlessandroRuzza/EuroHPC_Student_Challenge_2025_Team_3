@@ -1,0 +1,13 @@
+MPI size = 8
+Starting at: 22:41:25
+
+Solving ../instances/queen7_7.col...
+Starting (UB, LB) = (9, 7)
+Coloring time = 0m 3.160s
+Clique time = 0m 1.023s
+Slave 1 improved UB = 8 Time = 0m 52.514s
+Slave 1 improved UB = 7 Time = 1m 43.429s
+Chromatic number for ../instances/queen7_7.col: 7
+Time: 1m 46s
+Is Valid? TRUE.
+

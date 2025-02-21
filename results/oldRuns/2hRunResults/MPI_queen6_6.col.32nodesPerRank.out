@@ -1,0 +1,12 @@
+MPI size = 32
+Starting at: 19:17:50
+
+Solving ../instances/queen6_6.col...
+Starting (UB, LB) = (10, 6)
+Slave 1 improved UB = 9 Time = 0m 0.150s
+Slave 20 improved UB = 8 Time = 0m 1.122s
+Chromatic number for ../instances/queen6_6.col: 8
+Time: 166m 40s
+Is Valid? TRUE.
+TIMED OUT.
+

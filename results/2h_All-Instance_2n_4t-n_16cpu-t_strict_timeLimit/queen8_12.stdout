@@ -1,0 +1,24 @@
+1 COMPL Indep. number LB = 8 ; Clique LB = 12
+2 COMPL Indep. number LB = 8 ; Clique LB = 12
+1 COMPL Indep. number LB = 8 ; Clique LB = 12
+2 COMPL Indep. number LB = 8 ; Clique LB = 12
+1 COMPL Indep. number LB = 8 ; Clique LB = 12
+2 COMPL Indep. number LB = 8 ; Clique LB = 12
+1 COMPL Indep. number LB = 8 ; Clique LB = 12
+2 COMPL Indep. number LB = 8 ; Clique LB = 12
+2 COMPL Indep. number LB = 8 ; Clique LB = 12
+2 COMPL Indep. number LB = 8 ; Clique LB = 12
+1 COMPL Indep. number LB = 8 ; Clique LB = 12
+2 COMPL Indep. number LB = 8 ; Clique LB = 12
+MPI size = 8
+Starting at: 22:41:20
+
+Solving ../instances/queen8_12.col...
+Starting (UB, LB) = (13, 12)
+Coloring time = 0m 2.623s
+Clique time = 0m 2.437s
+Slave 1 improved UB = 12 Time = 2m 12.172s
+Chromatic number for ../instances/queen8_12.col: 12
+Time: 2m 14s
+Is Valid? TRUE.
+

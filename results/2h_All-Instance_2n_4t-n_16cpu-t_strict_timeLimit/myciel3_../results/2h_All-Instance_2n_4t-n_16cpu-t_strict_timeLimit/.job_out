@@ -1,0 +1,2 @@
+srun: error: cn0191: tasks 4-7: Exited with exit code 1
+slurmstepd: error: *** JOB 52509628 ON cn0156 CANCELLED AT 2025-02-20T01:28:17 DUE TO TIME LIMIT ***

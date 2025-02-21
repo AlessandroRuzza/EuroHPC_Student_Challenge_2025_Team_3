@@ -1,0 +1,75 @@
+[1739878956.586160] [cn0608:2938804:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878956.592446] [cn0608:2938820:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878956.593043] [cn0608:2938811:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938804] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938820] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938811] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.639276] [cn0608:2938812:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878956.651231] [cn0608:2938803:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938812] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938803] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.764157] [cn0608:2938819:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938819] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.853851] [cn0608:2938801:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878956.853844] [cn0608:2938810:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938810] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938801] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.867969] [cn0608:2938813:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878956.870289] [cn0608:2938806:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938813] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.871554] [cn0608:2938821:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938806] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938821] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.882398] [cn0608:2938814:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938814] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.893275] [cn0608:2938809:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938809] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.912495] [cn0608:2938805:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878956.915136] [cn0608:2938829:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938805] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938829] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.979623] [cn0608:2938802:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878956.979981] [cn0608:2938831:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938802] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938831] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878956.988467] [cn0608:2938832:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938832] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878957.003976] [cn0608:2938807:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.003987] [cn0608:2938817:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.004358] [cn0608:2938815:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.006810] [cn0608:2938808:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938807] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938817] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938815] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938808] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878957.012951] [cn0608:2938827:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.013427] [cn0608:2938830:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.013948] [cn0608:2938822:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.013992] [cn0608:2938826:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.014053] [cn0608:2938816:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.015633] [cn0608:2938824:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938827] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938816] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938822] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938830] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938826] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938824] pml_ucx.c:309  Error: Failed to create UCP worker
+[1739878957.022335] [cn0608:2938825:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.022346] [cn0608:2938818:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.022383] [cn0608:2938823:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[1739878957.022551] [cn0608:2938828:0]          ib_log.c:254  UCX  ERROR ibv_create_cq(cqe=256) failed: Invalid argument
+[cn0608:2938818] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938825] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938823] pml_ucx.c:309  Error: Failed to create UCP worker
+[cn0608:2938828] pml_ucx.c:309  Error: Failed to create UCP worker
+MPI size = 32
+Starting at: 12:42:39
+
+Solving ../instances/miles1500.col...
+Starting (UB, LB) = (73, 73)
+Coloring time = 0m 10.011s
+Clique time = 0m 28.606s
+Chromatic number for ../instances/miles1500.col: 73
+Time: 0m 41s
+Is Valid? TRUE.
+
