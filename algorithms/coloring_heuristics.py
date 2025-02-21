@@ -390,3 +390,59 @@ class TabuSearch(ColoringHeuristic):
         except ValueError:
             return False
 
+class SoftMaxTabuSearch(TabuSearch):
+    """
+    Tabu Search heuristic for graph coloring with a SoftMax-like selection strategy.
+    """
+
+    def __init__(self, max_steps, tabu_size, initial_coloring_heuristic=DSatur(), temperature=1):
+        super().__init__(max_steps, tabu_size, initial_coloring_heuristic)
+        self.temperature = temperature
+
+    def select_best_neighbor(self, neighborhood, tabu_list, best_num_colors):
+        """
+        Selects the best neighbor from the neighborhood using the SoftMax selection strategy.
+
+        :param neighborhood: List of neighboring colorings
+        :type neighborhood: list[list[int]]
+        :param tabu_list: List of recently visited solutions
+        :type tabu_list: list[list[int]]
+        :param best_num_colors: Current best number of colors used
+        :type best_num_colors: int
+        :return: List of probabilities
+        :rtype: list[float]
+        """
+
+        valid_neighbors = [neighbor for neighbor in neighborhood if neighbor not in tabu_list]
+        if not valid_neighbors:
+            return random.choice(neighborhood)
+        
+        # Calculate qualities of each neighbor (less colors -> better quality)
+        qualities = np.array([len(set(neighbor)) for neighbor in valid_neighbors])
+        # Calculate probabilities using softmax 
+        exp_qualities = np.exp(-qualities/self.temperature)  
+        probabilities = exp_qualities / np.sum(exp_qualities)
+
+        # Stochastic selection
+        selected_index = np.random.choice(range(len(valid_neighbors)), p=probabilities)
+        return valid_neighbors[selected_index]
+
+
+class Parallel_TabuSearch(SoftMaxTabuSearch):
+    """
+    Parallel version of Tabu Search that runs multiple instances on different threads.
+    """
+
+    def __init__(self, max_steps, tabu_size, initial_coloring_heuristic=DSatur(), temperature=5, num_workers=5):
+        super().__init__(max_steps, tabu_size, initial_coloring_heuristic, temperature)
+        self.num_workers = num_workers
+    
+    def find_coloring(self, graph, union_find, added_edges):
+        with ThreadPoolExecutor(max_workers=self.num_workers) as pool:
+            results = pool.map(super().find_coloring,
+                            [graph] * self.num_workers,
+                            [union_find] * self.num_workers, 
+                            [added_edges] * self.num_workers)
+            
+        # Return the best coloring found
+        return min(results, key=lambda c: len(set(c)))
