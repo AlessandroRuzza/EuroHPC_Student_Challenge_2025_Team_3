@@ -47,6 +47,10 @@ coresPerSlave = 32
 worsenTolerance = 1
 minQueueLenForPruning = size*2 * nodesPerSlave
 
+# Time parameters
+TIME_LIMIT = 10_000
+time_threshold = 100 # Time remaining before concluding slave computatations
+
 # Logging parameters
 outLogFolder = "../results/logs/"
 log = Log(outLogFolder + "log")
@@ -139,11 +143,6 @@ def branch_node(graph, node):
         coloring = graph.find_coloring(uf1, edges1)
         ub1 = len(set(coloring))
 
-        complement_LB = len(graph) / len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
-        printConditional(f"1 Complement LB = {complement_LB} ; Clique LB = {lb1}",
-                         complement_LB != lb1 and debugBounds)
-
-
         childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1, coloring))
         log.append(f"Node {node.id} branched by imposing {u}, {v} have the same color \n")
         log.append(f"Branch 1 child node results: \n")
@@ -161,10 +160,6 @@ def branch_node(graph, node):
     lb2 = len(clique)
     coloring = graph.find_coloring(uf2, edges2)
     ub2 = len(set(coloring))
-
-    complement_LB = len(graph.complement().find_max_clique(UnionFind(len(graph)), list()))
-    printConditional(f"2 Complement LB = {complement_LB} ; Clique LB = {lb2}",
-                     complement_LB != lb2 and debugBounds)
 
     childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2, coloring))
 
@@ -506,7 +501,7 @@ def main():
     
     printMaster(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
     
-    time_limit = 10000-100
+    time_limit = TIME_LIMIT-time_threshold
 
     printMaster(f"Solving {instance}...")
     chromatic_number, maxCliqueSize, best_coloring = solve_instance_parallel(instance, time_limit)

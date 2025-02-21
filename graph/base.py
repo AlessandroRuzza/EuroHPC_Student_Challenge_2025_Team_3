@@ -66,6 +66,8 @@ class BranchAndBoundNode:
         :type lb: int
         :param ub: Upper bound of the node
         :type ub: int
+        :param coloring: Coloring found in the current node
+        :type coloring: list[int]
         """
         self.id = -1
         self.union_find = union_find
@@ -117,6 +119,12 @@ class Graph:
     ##### Complement
 
     def complement(self):
+        """
+        Returns the complement of the graph, where all vertices that weren't previously connected have an edge between eachother
+        while neighboring vertices aren't connected anymore
+        :return: the complement of the graph
+        :rtype: Graph 
+        """
         if self.complG is None:
             self.complG = Graph(self.num_nodes, 
                         self.coloring_algorithm,
