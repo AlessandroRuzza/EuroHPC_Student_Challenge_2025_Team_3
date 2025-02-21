@@ -3,6 +3,9 @@ import time
 
 from threading import Thread, Condition, Event, Lock
 
+from os.path import isdir
+from os import mkdir
+
 import sys
 from pathlib import Path
 
@@ -44,9 +47,13 @@ coresPerSlave = 32
 worsenTolerance = 1
 minQueueLenForPruning = size*2 * nodesPerSlave
 
+# Time parameters
+TIME_LIMIT = 10_000
+time_threshold = 100 # Time remaining before concluding slave computatations
+
 # Logging parameters
-log_file_path = "./log"
-log = Log(log_file_path)
+outLogFolder = "../results/logs/"
+log = Log(outLogFolder + "log")
 
 def printDebugSlave(str):
     """
@@ -103,7 +110,7 @@ def branch_node(graph, node):
     # Find a pair of nodes to branch on
     u, v = graph.find_pair(node.union_find, node.added_edges)
     if u is None:
-        return None
+        return []
     
     childNodes = []
 
@@ -132,10 +139,11 @@ def branch_node(graph, node):
 
         clique = graph.find_max_clique(uf1, edges1)
         lb1 = len(clique)
-
+        
         coloring = graph.find_coloring(uf1, edges1)
         ub1 = len(set(coloring))
-        childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1))
+
+        childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1, coloring))
         log.append(f"Node {node.id} branched by imposing {u}, {v} have the same color \n")
         log.append(f"Branch 1 child node results: \n")
         log.append(f"Clique (LB = {lb1}) = {clique}\n")
@@ -152,7 +160,8 @@ def branch_node(graph, node):
     lb2 = len(clique)
     coloring = graph.find_coloring(uf2, edges2)
     ub2 = len(set(coloring))
-    childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2))
+
+    childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2, coloring))
 
     log.append(f"Node {node.id} branched by imposing vertices {u}, {v} have different colors\n")
     log.append(f"Branch 2 child node results: \n")
@@ -246,7 +255,7 @@ def handle_slave(graph, slaveRank,
                 if node.ub < best_ub[0]:
                     printDebugBounds(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
                     best_coloring.clear()
-                    best_coloring.extend(graph.find_coloring(node.union_find, node.added_edges))
+                    best_coloring.extend(node.coloring)
                     best_ub[0] = node.ub
                 if node.lb > best_lb[0]:
                     printDebugBounds(f"Slave {slaveRank} improved LB = {node.lb} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
@@ -349,7 +358,7 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode],
     # Run one thread that solves nodes in this process? (to not waste resources)
     return best_ub[0], best_lb[0], best_coloring
 
-def slave_branch_and_bound(graph):
+def slave_branch_and_bound(graph, start_time, time_limit):
     """
     Process executed by the slave that receives nodes from master, computes their lower bounds and upper bounds, and sends back the results
     
@@ -368,6 +377,8 @@ def slave_branch_and_bound(graph):
         graph.best_ub = best_ub
         childNodes = []
         for node in nodes:
+            if time.time() - start_time >= time_limit:
+                break
             # Run node
             for child in branch_node(graph, node):
                 childNodes.append(child)
@@ -384,11 +395,11 @@ def branch_and_bound_parallel(graph, time_limit=10000):
     :param time_limit: time limit in seconds
     :type time_limit: int
     """
+    start_time = time.time()
     
     if rank==0:
 
         # Initializations
-        start_time = time.time()
         n = len(graph)
         initial_uf = UnionFind(n)
         initial_edges = set()
@@ -415,10 +426,10 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         print(f"Starting (UB, LB) = ({ub}, {lb})")
         print(f"Coloring time = {int(colorTime/60)}m {colorTime%60:.3f}s")
         print(f"Clique time = {int(cliqueTime/60)}m {cliqueTime%60:.3f}s")
-        queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub))
+        queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub, initial_coloring))
         return master_branch_and_bound(graph, queue, best_ub, best_lb, initial_coloring, start_time, time_limit)
     else:
-        slave_branch_and_bound(graph)
+        slave_branch_and_bound(graph, start_time, time_limit)
         return None, None, None
 
 def solve_instance_parallel(filename, time_limit):
@@ -430,6 +441,7 @@ def solve_instance_parallel(filename, time_limit):
     :param timeLimit: time limit in seconds
     :type timeLimit: int
     """
+    start_time = time.time()
     graph = parse_col_file(filename)
 
     # Set up heuristics
@@ -437,7 +449,6 @@ def solve_instance_parallel(filename, time_limit):
     graph.set_clique_algorithm(ParallelDLS(num_workers=coresPerSlave, lambda_max_steps=10, dls_instance=DLS()))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 
-    start_time = time.time()
     chromatic_number, maxCliqueSize, best_coloring = branch_and_bound_parallel(graph, time_limit)
     wall_time = int(time.time() - start_time)
 
@@ -461,7 +472,8 @@ def solve_instance_parallel(filename, time_limit):
             wall_time=wall_time,
             time_limit=time_limit,
             graph=graph,
-            coloring=best_coloring
+            coloring=best_coloring,
+            maxCliqueSize=maxCliqueSize
         )
 
     return chromatic_number, maxCliqueSize, best_coloring
@@ -479,10 +491,17 @@ def main():
         sys.exit(1)
         
     instance = sys.argv[1]
+    
+    outLogFile = f"{outLogFolder}{instance.split('/')[2]}.log"
+    log.filepath = outLogFile
 
+    if not isdir(outLogFolder) and rank==0:
+        mkdir(outLogFolder)
+
+    
     printMaster(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
     
-    time_limit = 10000
+    time_limit = TIME_LIMIT-time_threshold
 
     printMaster(f"Solving {instance}...")
     chromatic_number, maxCliqueSize, best_coloring = solve_instance_parallel(instance, time_limit)

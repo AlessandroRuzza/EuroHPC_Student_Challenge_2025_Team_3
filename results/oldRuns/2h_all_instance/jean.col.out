@@ -1,0 +1,11 @@
+MPI size = 32
+Starting at: 12:42:36
+
+Solving ../instances/jean.col...
+Starting (UB, LB) = (10, 10)
+Coloring time = 0m 10.000s
+Clique time = 0m 0.761s
+Chromatic number for ../instances/jean.col: 10
+Time: 0m 10s
+Is Valid? TRUE.
+

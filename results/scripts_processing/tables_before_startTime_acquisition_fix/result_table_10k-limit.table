@@ -1,0 +1,21 @@
+   instance1    ; nodes, edges ; ( UB,  LB) ; isOptimum ; wall_time ; nTasks, cpusPerTask
+    anna.col    ;  138 ,  986  ; ( 11,  11) ;    Yes    ;   19  sec ;   2   ,   32 
+   david.col    ;   87 ,  812  ; ( 11,  11) ;    Yes    ;   7   sec ;   8   ,   32 
+   fpsol2.col   ;  496 , 23308 ; ( 65,  65) ;    Yes    ;  135  sec ;   8   ,   32 
+  games120.col  ;  120 ,  1276 ; ( 9 ,  9 ) ;    Yes    ;   8   sec ;   8   ,   32 
+   homer.col    ;  561 ,  3256 ; ( 13,  13) ;    Yes    ;   25  sec ;   8   ,   32 
+    huck.col    ;   74 ,  602  ; ( 11,  11) ;    Yes    ;   6   sec ;   8   ,   32 
+   inithx.col   ;  621 , 27938 ; ( 31,  31) ;    Yes    ;  117  sec ;   8   ,   32 
+    jean.col    ;   80 ,  508  ; ( 10,  10) ;    Yes    ;   6   sec ;   8   ,   32 
+ miles1500.col  ;  128 , 10396 ; ( 73,  73) ;    Yes    ;   66  sec ;   8   ,   32 
+  miles250.col  ;  128 ,  774  ; ( 8 ,  8 ) ;    Yes    ;   10  sec ;   8   ,   32 
+   mulsol.col   ;  197 ,  7850 ; ( 49,  49) ;    Yes    ;   52  sec ;   8   ,   32 
+  myciel3.col   ;   11 ,   40  ; ( 4 ,  2 ) ;  Unknown  ; 10002 sec ;   8   ,   32 
+  myciel4.col   ;   23 ,  142  ; ( 5 ,  2 ) ;  Unknown  ; 10010 sec ;   8   ,   32 
+ queen11_11.col ;  121 ,  3960 ; ( 14,  11) ;  Unknown  ; 10019 sec ;   8   ,   32 
+  queen5_5.col  ;   25 ,  320  ; ( 5 ,  5 ) ;    Yes    ;   3   sec ;   8   ,   32 
+  queen6_6.col  ;   36 ,  580  ; ( 8 ,  6 ) ;  Unknown  ; 10007 sec ;   8   ,   32 
+  queen7_7.col  ;   49 ,  952  ; ( 7 ,  7 ) ;    Yes    ;  193  sec ;   8   ,   32 
+ queen8_12.col  ;   96 ,  2736 ; ( 13,  12) ;    Yes    ;  180  sec ;   8   ,   32 
+  queen8_8.col  ;   64 ,  1456 ; ( 10,  8 ) ;  Unknown  ; 10009 sec ;   8   ,   32 
+   zeroin.col   ;  211 ,  8200 ; ( 49,  49) ;    Yes    ;   49  sec ;   8   ,   32 

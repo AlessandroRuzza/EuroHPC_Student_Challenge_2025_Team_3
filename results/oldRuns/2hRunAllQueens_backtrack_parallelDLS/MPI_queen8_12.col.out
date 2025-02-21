@@ -1,0 +1,12 @@
+MPI size = 32
+Starting at: 22:21:18
+
+Solving ../instances/queen8_12.col...
+Starting (UB, LB) = (13, 12)
+Coloring time = 0m 1.000s
+Clique time = 0m 0.743s
+Slave 23 improved UB = 12 Time = 1m 11.391s
+Chromatic number for ../instances/queen8_12.col: 12
+Time: 1m 25s
+Is Valid? TRUE.
+

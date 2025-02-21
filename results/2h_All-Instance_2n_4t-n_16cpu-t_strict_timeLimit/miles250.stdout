@@ -1,0 +1,11 @@
+MPI size = 8
+Starting at: 22:41:18
+
+Solving ../instances/miles250.col...
+Starting (UB, LB) = (8, 8)
+Coloring time = 0m 2.087s
+Clique time = 0m 4.755s
+Chromatic number for ../instances/miles250.col: 8
+Time: 0m 6s
+Is Valid? TRUE.
+

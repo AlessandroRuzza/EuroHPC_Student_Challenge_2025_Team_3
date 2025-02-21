@@ -1,0 +1,11 @@
+MPI size = 8
+Starting at: 08:09:46
+
+Solving ../instances/games120.col...
+Starting (UB, LB) = (9, 9)
+Coloring time = 0m 2.623s
+Clique time = 0m 5.825s
+Chromatic number for ../instances/games120.col: 9
+Time: 0m 8s
+Is Valid? TRUE.
+

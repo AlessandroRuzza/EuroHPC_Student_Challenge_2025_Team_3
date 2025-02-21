@@ -1,0 +1,14 @@
+MPI size = 32
+Starting at: 19:18:51
+
+Solving ../instances/school1.col...
+Starting (UB, LB) = (26, 14)
+Slave 1 improved UB = 24 Time = 0m 1.942s
+Slave 1 improved UB = 19 Time = 0m 4.382s
+Slave 1 improved UB = 18 Time = 0m 9.177s
+Slave 4 improved UB = 17 Time = 1m 21.310s
+Chromatic number for ../instances/school1.col: 17
+Time: 166m 59s
+Is Valid? TRUE.
+TIMED OUT.
+

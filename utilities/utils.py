@@ -1,5 +1,6 @@
 import random
 import time
+from graph.base import Graph
 
 # Generate a random graph with num_nodes nodes and density probability of edge between any two nodes
 def generate_random_graph(num_nodes, density):
@@ -76,35 +77,44 @@ def parse_col_file(file_path):
 
     :param file_path: Relative path to .col file
     :type file_path: str
+    :raises FileNotFoundError: If the specified file is not found
+    :raises IOError: If there is an error reading the file.
     :return: The Graph object corresponding to instance graph
     :rtype: Graph
     """
-    from graph.base import Graph
+
     graph = None
 
-    with open(file_path, "r") as file:
-        for line in file:
-            line = line.strip()
+    try:
+        with open(file_path, "r") as file:
+            for line in file:
+                line = line.strip()
 
-            if line.startswith("c "):
-                continue  # Ignore comments
+                if line.startswith("c "):
+                    continue  # Ignore comments
 
-            if line.startswith("p "):
-                parts = line.split()
-                if len(parts) == 4 and parts[0] == "p" and parts[1] == "edge":
-                    num_nodes = int(parts[2])
-                    graph = Graph(num_nodes)
-                continue
+                if line.startswith("p "):
+                    parts = line.split()
+                    if len(parts) == 4 and parts[0] == "p" and parts[1] == "edge":
+                        num_nodes = int(parts[2])
+                        graph = Graph(num_nodes)
+                    continue
 
-            if line.startswith("e "):
-                parts = line.split()
-                if len(parts) == 3:
-                    node1, node2 = int(parts[1])-1, int(parts[2])-1 # files count nodes from 1, we count from 0
-                    if node1 != node2:
-                        graph.add_edge(node1, node2)
-                continue
+                if line.startswith("e "):
+                    parts = line.split()
+                    if len(parts) == 3:
+                        node1, node2 = int(parts[1])-1, int(parts[2])-1 # files count nodes from 1, we count from 0
+                        if node1 != node2:
+                            graph.add_edge(node1, node2)
+                    continue
 
-    return graph
+        return graph
+    
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The specified file '{file_path}' was not found.")
+    except IOError as e:
+        raise RuntimeError(f"An error occurred while reading the file '{file_path}': {e}")
+
 
 def secondsAsStr(s):
     """
@@ -119,7 +129,7 @@ def secondsAsStr(s):
     m = int(s/60)
     return f"{h}h{m}m{s:.3f}s"
 
-def output_results(instance_name, solver_name, solver_version, num_workers, num_cores, wall_time, time_limit, graph, coloring):
+def output_results(instance_name, solver_name, solver_version, num_workers, num_cores, wall_time, time_limit, graph, coloring, maxCliqueSize):
     """
     Output results of an instance to file.
 
@@ -139,6 +149,8 @@ def output_results(instance_name, solver_name, solver_version, num_workers, num_
     :type graph: Graph
     :param coloring: List of colors (index is node, value is color) forming a proper coloring of the graph 
     :type coloring: list[int]
+    :param maxCliqueSize: Best lower bound found
+    :type maxCliqueSize: int
     """
     # Get file name without path and extension
     instance_file = instance_name.split('/')[-1].split('.')[0]
@@ -157,6 +169,7 @@ def output_results(instance_name, solver_name, solver_version, num_workers, num_
         f.write(f"is_within_time_limit: {wall_time <= time_limit}\n")
 
         f.write(f"number_of_colors: {len(set(coloring))}\n")
+        f.write(f"max_clique_size: {maxCliqueSize}\n")
         
         # Write vertex-color assignments
         for vertex in range(graph.num_nodes):

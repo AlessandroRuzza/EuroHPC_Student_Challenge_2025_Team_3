@@ -54,7 +54,7 @@ class BranchAndBoundNode:
     Node for the branch and bound algorithm.
     Nodes have an id purely for logging purposes.
     """
-    def __init__(self, union_find, added_edges, lb, ub):
+    def __init__(self, union_find, added_edges, lb, ub, coloring):
         """
         Constructor for the BranchAndBoundNode class.
 
@@ -66,12 +66,15 @@ class BranchAndBoundNode:
         :type lb: int
         :param ub: Upper bound of the node
         :type ub: int
+        :param coloring: Coloring found in the current node
+        :type coloring: list[int]
         """
         self.id = -1
         self.union_find = union_find
         self.added_edges = set(added_edges)
         self.lb = lb
         self.ub = ub
+        self.coloring = coloring
 
     def __lt__(self, other):
         """
@@ -106,12 +109,33 @@ class Graph:
         :type branching_strategy: BranchingStrategy
         """
         self.num_nodes = num_nodes
-        self.adj_list = defaultdict(list)
+        self.adj_list = defaultdict(set)
         self.coloring_algorithm = coloring_algorithm
         self.clique_algorithm = clique_algorithm
         self.branching_strategy = branching_strategy
         self.best_ub = num_nodes
+        self.complG = None
 
+    ##### Complement
+
+    def complement(self):
+        """
+        Returns the complement of the graph, where all vertices that weren't previously connected have an edge between eachother
+        while neighboring vertices aren't connected anymore
+        :return: the complement of the graph
+        :rtype: Graph 
+        """
+        if self.complG is None:
+            self.complG = Graph(self.num_nodes, 
+                        self.coloring_algorithm,
+                        self.clique_algorithm,
+                        self.branching_strategy)
+            for a in range(self.num_nodes):
+                for b in range(self.num_nodes):
+                    if not self.is_connected(a,b):
+                        self.complG.add_edge(a,b)
+
+        return self.complG
 
     ##### Graph operations
 
@@ -124,9 +148,9 @@ class Graph:
         :param v: a node of the graph
         :type v: int
         """
-        if v not in self.adj_list[u]:
-            self.adj_list[u].append(v)
-            self.adj_list[v].append(u)
+        # if v not in self.adj_list[u]:
+        self.adj_list[u].add(v)
+        self.adj_list[v].add(u)
 
     def is_connected(self, u, v):
         """

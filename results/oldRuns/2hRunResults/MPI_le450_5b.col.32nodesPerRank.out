@@ -1,0 +1,11 @@
+MPI size = 32
+Starting at: 19:18:51
+
+Solving ../instances/le450_5b.col...
+Starting (UB, LB) = (11, 5)
+Slave 5 improved UB = 10 Time = 16m 35.577s
+Chromatic number for ../instances/le450_5b.col: 10
+Time: 166m 43s
+Is Valid? TRUE.
+TIMED OUT.
+

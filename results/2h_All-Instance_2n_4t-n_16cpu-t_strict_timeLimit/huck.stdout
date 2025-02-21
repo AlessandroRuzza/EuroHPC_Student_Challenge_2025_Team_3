@@ -1,0 +1,11 @@
+MPI size = 8
+Starting at: 22:41:18
+
+Solving ../instances/huck.col...
+Starting (UB, LB) = (11, 11)
+Coloring time = 0m 2.194s
+Clique time = 0m 2.186s
+Chromatic number for ../instances/huck.col: 11
+Time: 0m 4s
+Is Valid? TRUE.
+
