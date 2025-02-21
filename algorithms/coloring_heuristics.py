@@ -3,6 +3,8 @@ from collections import defaultdict
 import time
 from concurrent.futures import ThreadPoolExecutor
 import random
+import numpy as np
+
 
 class ColoringHeuristic(ABC):
     """
@@ -233,3 +235,158 @@ class Parallel_BacktrackingDSatur(BacktrackingDSatur):
         # Return the best coloring found
         return min(results, key=lambda c: len(set(c)))
         
+
+class TabuSearch(ColoringHeuristic):
+    """
+    Base Tabu Search heuristic for graph coloring.
+    """
+
+    def __init__(self, max_steps, tabu_size, initial_coloring_heuristic=DSatur()):
+        """
+        Constructor for the TabuSearch class.
+
+        :param max_steps: Max number of steps for this algorithm.
+        :type max_steps: int
+        :param tabu_size: Size of the tabu list to avoid cycling back to recent solutions.
+        :type tabu_size: int
+        :param initial_coloring_heuristic: Initial coloring heuristic to use
+        :type initial_coloring_heuristic: ColoringHeuristic
+        """
+
+        self.max_steps = max_steps
+        self.tabu_size = tabu_size
+        self.initial_coloring_heuristic = initial_coloring_heuristic
+
+    def find_coloring(self, graph, union_find, added_edges):
+        """
+        Executes the Tabu Search algorithm to find a proper coloring of the graph.
+
+        :param graph: Graph to color
+        :type graph: Graph
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: List of edges to add to the graph
+        :type added_edges: list
+        :return: List of colors
+        :rtype: list[int]
+        """
+        current_coloring = self.initial_solution(graph, union_find, added_edges)
+        best_coloring = current_coloring[:]
+        best_num_colors = len(set(best_coloring))
+
+        tabu_list = []
+        steps = 0
+        
+        while steps < self.max_steps:
+            neighborhood = self.get_neighborhood(current_coloring, graph, union_find, added_edges)
+            if not neighborhood:
+                break
+            
+            next_coloring = self.select_best_neighbor(neighborhood, tabu_list, best_num_colors)
+            current_coloring = next_coloring[:]
+            current_num_colors = len(set(current_coloring))
+
+            if current_num_colors < best_num_colors:
+                best_coloring = current_coloring[:]
+                best_num_colors = current_num_colors
+
+            tabu_list.append(current_coloring)
+            if len(tabu_list) > self.tabu_size:
+                tabu_list.pop(0)
+
+            steps += 1
+
+        return best_coloring
+
+    def initial_solution(self, graph, union_find, added_edges):
+        """
+        Generates an initial coloring solution using the specified initial coloring heuristic.
+
+        :param graph: Graph to color
+        :type graph: Graph
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: List of edges to add to the graph
+        :type added_edges: list
+        :return: Initial coloring of the graph
+        :rtype: list[int]
+        """
+        return self.initial_coloring_heuristic.find_coloring(graph, union_find, added_edges)
+
+    def get_neighborhood(self, coloring, graph, union_find, added_edges):
+        """
+        Generates a neighborhood of solutions by modifying the current coloring.
+
+        :param coloring: Current coloring of the graph
+        :type coloring: list[int]
+        :param graph: Graph to color
+        :type graph: Graph
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: List of edges to add to the graph
+        :type added_edges: list
+        :return: List of neighboring colorings
+        :rtype: list[list[int]]
+        """
+        neighborhood = []
+        for node in range(graph.num_nodes):
+            current_color = coloring[node]
+            for new_color in range(max(coloring) + 1):
+                if new_color != current_color:
+                    new_coloring = coloring[:]
+                    new_coloring[node] = new_color
+                    # Update the color of all nodes in the same union
+                    for i in range(graph.num_nodes):
+                        if union_find.find(i) == union_find.find(node):
+                            new_coloring[i] = new_color
+                    
+                    if self.is_valid_coloring(graph, new_coloring, added_edges):
+                        neighborhood.append(new_coloring)
+        return neighborhood
+
+    def select_best_neighbor(self, neighborhood, tabu_list, best_num_colors):
+        """
+        Selects the best neighbor from the neighborhood that is not in the tabu list.
+
+        :param neighborhood: List of neighboring colorings
+        :type neighborhood: list[list[int]]
+        :param tabu_list: List of recently visited solutions
+        :type tabu_list: list[list[int]]
+        :param best_num_colors: Current best number of colors used
+        :type best_num_colors: int
+        :return: Best neighbor coloring
+        :rtype: list[int]
+        """
+        best_neighbor = None
+        best_neighbor_num_colors = float('inf')
+
+        for neighbor in neighborhood:
+            if neighbor not in tabu_list:
+                num_colors = len(set(neighbor))
+                if num_colors < best_neighbor_num_colors:
+                    best_neighbor = neighbor
+                    best_neighbor_num_colors = num_colors
+
+        return best_neighbor if best_neighbor else random.choice(neighborhood)
+
+    def is_valid_coloring(self, graph, coloring, added_edges):
+        """
+        Validates if the given coloring is valid according to the graph and added edges.
+
+        :param graph: Graph to validate against
+        :type graph: Graph
+        :param coloring: Color assignment (index is node, value is color)
+        :type coloring: list[int]
+        :param added_edges: List of edges to add to the graph
+        :type added_edges: list
+        :return: True if the coloring is valid, False otherwise
+        :rtype: bool
+        """
+        for a, b in added_edges:
+            if coloring[a] == coloring[b]:
+                return False
+        try: 
+            return graph.validate_coloring(coloring)
+        except ValueError:
+            return False
+
