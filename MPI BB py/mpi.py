@@ -433,7 +433,7 @@ def solve_instance_parallel(filename, time_limit):
     graph = parse_col_file(filename)
 
     # Set up heuristics
-    graph.set_coloring_algorithm(Parallel_BacktrackingDSatur(time_limit=0.6, num_workers=coresPerSlave))
+    graph.set_coloring_algorithm(ParallelTabuSearch())
     graph.set_clique_algorithm(ParallelDLS(num_workers=coresPerSlave, lambda_max_steps=10, dls_instance=DLS()))
     graph.set_branching_strategy(SaturationBranchingStrategy())
 

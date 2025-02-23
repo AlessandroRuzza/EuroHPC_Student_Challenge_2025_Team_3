@@ -4,7 +4,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 import random
 import numpy as np
-
+from math import exp
 
 class ColoringHeuristic(ABC):
     """
@@ -241,7 +241,7 @@ class TabuSearch(ColoringHeuristic):
     Base Tabu Search heuristic for graph coloring.
     """
 
-    def __init__(self, max_steps, tabu_size, initial_coloring_heuristic=DSatur()):
+    def __init__(self, max_steps=2000, tabu_size=100, initial_coloring_heuristic=DSatur()):
         """
         Constructor for the TabuSearch class.
 
@@ -274,15 +274,13 @@ class TabuSearch(ColoringHeuristic):
         best_coloring = current_coloring[:]
         best_num_colors = len(set(best_coloring))
 
-        tabu_list = []
+        tabu_set = set()
         steps = 0
         
-        while steps < self.max_steps:
-            neighborhood = self.get_neighborhood(current_coloring, graph, union_find, added_edges)
-            if not neighborhood:
+        while steps < self.max_steps:            
+            next_coloring = self.select_best_neighbor(graph, current_coloring, union_find, added_edges, tabu_set)
+            if next_coloring is None:
                 break
-            
-            next_coloring = self.select_best_neighbor(neighborhood, tabu_list, best_num_colors)
             current_coloring = next_coloring[:]
             current_num_colors = len(set(current_coloring))
 
@@ -290,9 +288,12 @@ class TabuSearch(ColoringHeuristic):
                 best_coloring = current_coloring[:]
                 best_num_colors = current_num_colors
 
-            tabu_list.append(current_coloring)
-            if len(tabu_list) > self.tabu_size:
-                tabu_list.pop(0)
+            
+            # Update tabu list
+            tabu_set.add(tuple(current_coloring))
+            if len(tabu_set) > self.tabu_size:
+                tabu_set.remove(next(iter(tabu_set)))
+            
 
             steps += 1
 
@@ -313,127 +314,221 @@ class TabuSearch(ColoringHeuristic):
         """
         return self.initial_coloring_heuristic.find_coloring(graph, union_find, added_edges)
 
-    def get_neighborhood(self, coloring, graph, union_find, added_edges):
-        """
-        Generates a neighborhood of solutions by modifying the current coloring.
 
-        :param coloring: Current coloring of the graph
-        :type coloring: list[int]
-        :param graph: Graph to color
+    def select_best_neighbor(self, graph, current_coloring, union_find, added_edges, tabu_set):
+        """
+        Selects the best neighbor from the neighborhood that is not in the tabu set.
+
+        :param graph: The graph to compute on
         :type graph: Graph
+        :param current_coloring: Current coloring to work on
+        :type current_coloring: list[int]
         :param union_find: Data Structure to keep track of vertex colors
         :type union_find: UnionFind
         :param added_edges: List of edges to add to the graph
         :type added_edges: list
-        :return: List of neighboring colorings
-        :rtype: list[list[int]]
-        """
-        neighborhood = []
-        for node in range(graph.num_nodes):
-            current_color = coloring[node]
-            for new_color in range(max(coloring) + 1):
-                if new_color != current_color:
-                    new_coloring = coloring[:]
-                    new_coloring[node] = new_color
-                    # Update the color of all nodes in the same union
-                    for i in range(graph.num_nodes):
-                        if union_find.find(i) == union_find.find(node):
-                            new_coloring[i] = new_color
-                    
-                    if self.is_valid_coloring(graph, new_coloring, added_edges):
-                        neighborhood.append(new_coloring)
-        return neighborhood
-
-    def select_best_neighbor(self, neighborhood, tabu_list, best_num_colors):
-        """
-        Selects the best neighbor from the neighborhood that is not in the tabu list.
-
-        :param neighborhood: List of neighboring colorings
-        :type neighborhood: list[list[int]]
-        :param tabu_list: List of recently visited solutions
-        :type tabu_list: list[list[int]]
-        :param best_num_colors: Current best number of colors used
-        :type best_num_colors: int
+        :param tabu_set: Colorings to avoid
+        :param tabu_set: set[tuple[int]]
         :return: Best neighbor coloring
         :rtype: list[int]
         """
         best_neighbor = None
-        best_neighbor_num_colors = float('inf')
+        best_neighbor_colors = float('inf')
 
-        for neighbor in neighborhood:
-            if neighbor not in tabu_list:
-                num_colors = len(set(neighbor))
-                if num_colors < best_neighbor_num_colors:
-                    best_neighbor = neighbor
-                    best_neighbor_num_colors = num_colors
+        
+        # Pre-computing coloring groups and adj_list to avoid duplicate computations
+        union_groups = {}
+        for node in range(graph.num_nodes):
+            root = union_find.find(node)
+            if root not in union_groups:
+                union_groups[root] = []
+            union_groups[root].append(node)
 
-        return best_neighbor if best_neighbor else random.choice(neighborhood)
+        adj_lists = {node: set(graph.adj_list[node]) for node in range(graph.num_nodes)}
 
-    def is_valid_coloring(self, graph, coloring, added_edges):
-        """
-        Validates if the given coloring is valid according to the graph and added edges.
+        current_num_colors = len(set(current_coloring))
+        
+        for node in range(graph.num_nodes):
+            current_color = current_coloring[node]
+            node_group = union_groups[union_find.find(node)]
+            
+            # Try new colors
+            for new_color in range(current_num_colors + 2):
+                if new_color == current_color:
+                    continue
+                    
 
-        :param graph: Graph to validate against
-        :type graph: Graph
-        :param coloring: Color assignment (index is node, value is color)
-        :type coloring: list[int]
-        :param added_edges: List of edges to add to the graph
-        :type added_edges: list
-        :return: True if the coloring is valid, False otherwise
-        :rtype: bool
-        """
-        for a, b in added_edges:
-            if coloring[a] == coloring[b]:
-                return False
-        try: 
-            return graph.validate_coloring(coloring)
-        except ValueError:
-            return False
+                has_conflict = False
+                
+                # Check graph edges
+                for neighbor in adj_lists[node]:
+                    if current_coloring[neighbor] == new_color:
+                        has_conflict = True
+                        break
+                        
+                if has_conflict:
+                    continue
+                    
+                # Check added edges (for different coloring)
+                for group_node in node_group:
+                    for u, v in added_edges:
+                        if group_node == u and current_coloring[v] == new_color:
+                            has_conflict = True
+                            break
+                        if group_node == v and current_coloring[u] == new_color:
+                            has_conflict = True
+                            break
+                    if has_conflict:
+                        break
+                        
+                if has_conflict:
+                    continue
+                
+                # Create new coloring if no conflicts
+                new_coloring = current_coloring[:]
+                for group_node in node_group:
+                    new_coloring[group_node] = new_color
+                
+                # Check if move is tabu
+                move_hash = tuple(new_coloring)
+                if move_hash in tabu_set:
+                    continue
+                
+                # Update best neighbor if this is better
+                num_colors = len(set(new_coloring))
+                if num_colors < best_neighbor_colors:
+                    best_neighbor = new_coloring
+                    best_neighbor_colors = num_colors
+                    improved = True
+        
+        return best_neighbor
+
 
 class SoftMaxTabuSearch(TabuSearch):
     """
     Tabu Search heuristic for graph coloring with a SoftMax-like selection strategy.
     """
 
-    def __init__(self, max_steps, tabu_size, initial_coloring_heuristic=DSatur(), temperature=1):
+    def __init__(self, max_steps=100, tabu_size=50, initial_coloring_heuristic=DSatur(), temperature=2):
         super().__init__(max_steps, tabu_size, initial_coloring_heuristic)
         self.temperature = temperature
 
-    def select_best_neighbor(self, neighborhood, tabu_list, best_num_colors):
+    def select_best_neighbor(self, graph, current_coloring, union_find, added_edges, tabu_set):
         """
-        Selects the best neighbor from the neighborhood using the SoftMax selection strategy.
+        Selects the best neighbor from the neighborhood that is not in the tabu set using softmax approach.
 
-        :param neighborhood: List of neighboring colorings
-        :type neighborhood: list[list[int]]
-        :param tabu_list: List of recently visited solutions
-        :type tabu_list: list[list[int]]
-        :param best_num_colors: Current best number of colors used
-        :type best_num_colors: int
-        :return: List of probabilities
+        :param graph: The graph to compute on
+        :type graph: Graph
+        :param current_coloring: Current coloring to work on
+        :type current_coloring: list[int]
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: List of edges to add to the graph
+        :type added_edges: list
+        :param tabu_set: Colorings to avoid
+        :param tabu_set: set[tuple[int]]
+        :return: Best neighbor coloring
+        :rtype: list[int]
+        """
+        
+        valid_neighbors = []
+        neighbor_scores = []
+
+        
+        # Pre-computing coloring groups and adj_list to avoid duplicate computations
+        union_groups = {}
+        for node in range(graph.num_nodes):
+            root = union_find.find(node)
+            if root not in union_groups:
+                union_groups[root] = []
+            union_groups[root].append(node)
+
+        adj_lists = {node: set(graph.adj_list[node]) for node in range(graph.num_nodes)}
+
+        current_num_colors = len(set(current_coloring))
+        
+        for node in range(graph.num_nodes):
+            current_color = current_coloring[node]
+            node_group = union_groups[union_find.find(node)]
+            
+            # Try new colors
+            for new_color in range(current_num_colors + 2):
+                if new_color == current_color:
+                    continue
+                    
+
+                has_conflict = False
+                
+                # Check graph edges
+                for neighbor in adj_lists[node]:
+                    if current_coloring[neighbor] == new_color:
+                        has_conflict = True
+                        break
+                        
+                if has_conflict:
+                    continue
+                    
+                # Check added edges (for different coloring)
+                for group_node in node_group:
+                    for u, v in added_edges:
+                        if group_node == u and current_coloring[v] == new_color:
+                            has_conflict = True
+                            break
+                        if group_node == v and current_coloring[u] == new_color:
+                            has_conflict = True
+                            break
+                    if has_conflict:
+                        break
+                        
+                if has_conflict:
+                    continue
+                
+                # Create new coloring if no conflicts
+                new_coloring = current_coloring[:]
+                for group_node in node_group:
+                    new_coloring[group_node] = new_color
+                
+                # Check if move is tabu
+                move_hash = tuple(new_coloring)
+                if move_hash in tabu_set:
+                    continue
+                
+                num_colors = len(set(new_coloring))
+                valid_neighbors.append(new_coloring)
+                neighbor_scores.append(num_colors)
+        
+        if len(valid_neighbors) < 1:
+            return None
+        
+        # Use softmax to select next coloring
+        probabilities = self.softmax(neighbor_scores)
+        selected_idx = random.choices(range(len(valid_neighbors)), 
+                                        weights=probabilities)[0]
+        return valid_neighbors[selected_idx]
+    
+
+    def softmax(self, scores):
+        """
+        Calculate softmax probabilities for neighbor selection.
+        Lower scores (fewer colors) get higher probabilities.
+
+        :param scores: list of values to apply softmax on
+        :type scores: list[int]
+        :return: list of probabilities whose sum equal to 1
         :rtype: list[float]
         """
-
-        valid_neighbors = [neighbor for neighbor in neighborhood if neighbor not in tabu_list]
-        if not valid_neighbors:
-            return random.choice(neighborhood)
+        exp_scores = [exp(-(score/self.temperature)) for score in scores]
+        total = sum(exp_scores)
+        return [s/total for s in exp_scores]
         
-        # Calculate qualities of each neighbor (less colors -> better quality)
-        qualities = np.array([len(set(neighbor)) for neighbor in valid_neighbors])
-        # Calculate probabilities using softmax 
-        exp_qualities = np.exp(-qualities/self.temperature)  
-        probabilities = exp_qualities / np.sum(exp_qualities)
-
-        # Stochastic selection
-        selected_index = np.random.choice(range(len(valid_neighbors)), p=probabilities)
-        return valid_neighbors[selected_index]
 
 
-class Parallel_TabuSearch(SoftMaxTabuSearch):
+class ParallelTabuSearch(SoftMaxTabuSearch):
     """
-    Parallel version of Tabu Search that runs multiple instances on different threads.
+    Parallel version of (SoftMax) Tabu Search that runs multiple instances on different threads.
     """
 
-    def __init__(self, max_steps, tabu_size, initial_coloring_heuristic=DSatur(), temperature=5, num_workers=5):
+    def __init__(self, max_steps=750, tabu_size=50, initial_coloring_heuristic=DSatur(), temperature=2, num_workers=5):
         super().__init__(max_steps, tabu_size, initial_coloring_heuristic, temperature)
         self.num_workers = num_workers
     
