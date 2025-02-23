@@ -20,6 +20,9 @@ class UnionFind:
         :param size: Size of the UnionFind data structure
         :type size: int
         """
+
+        ## @var parent
+        # List of parent nodes for each node
         self.parent = list(range(size))
 
     def find(self, x):
@@ -51,9 +54,9 @@ class UnionFind:
 
 class BranchAndBoundNode:
     """
-    Node for the branch and bound algorithm.
-    Nodes have an id purely for logging purposes.
+    Node for the branch and bound algorithm. Nodes have an id purely for logging purposes.
     """
+    
     def __init__(self, union_find, added_edges, lb, ub, coloring):
         """
         Constructor for the BranchAndBoundNode class.
@@ -69,11 +72,23 @@ class BranchAndBoundNode:
         :param coloring: Coloring found in the current node
         :type coloring: list[int]
         """
+        ## @var id
+        # Identifier of the node
         self.id = -1
+        ## @var union_find
+        # Data structure to keep track of vertex colors
         self.union_find = union_find
+        ## @var added_edges
+        # Data structure to keep track of vertices with different colors
         self.added_edges = set(added_edges)
+        ## @var lb
+        # Lower bound of the node
         self.lb = lb
+        ## @var ub
+        # Upper bound of the node
         self.ub = ub
+        ## @var coloring
+        # Coloring found in the current node
         self.coloring = coloring
 
     def __lt__(self, other):
@@ -93,9 +108,9 @@ class Graph:
     """
 
     def __init__(self, num_nodes, 
-                 coloring_algorithm=DSatur(), 
-                 clique_algorithm=DLS(),
-                 branching_strategy=SaturationBranchingStrategy()):
+                 coloring_algorithm=None, 
+                 clique_algorithm=None,
+                 branching_strategy=None):
         """
         Constructor.
 
@@ -108,12 +123,26 @@ class Graph:
         :param branching_strategy: Heuristic used to branch nodes for this graph instance
         :type branching_strategy: BranchingStrategy
         """
+        ## @var num_nodes
+        # Number of vertices in the graph
         self.num_nodes = num_nodes
+        ## @var adj_list
+        # Adjacency list of the graph
         self.adj_list = defaultdict(set)
+        ## @var coloring_algorithm
+        # Heuristic used to approximate the upper bound for the chromatic number
         self.coloring_algorithm = coloring_algorithm
+        ## @var clique_algorithm
+        # Heuristic used to approximate the lower bound for the chromatic number
         self.clique_algorithm = clique_algorithm
+        ## @var branching_strategy
+        # Heuristic used to branch nodes for this graph instance
         self.branching_strategy = branching_strategy
+        ## @var best_ub
+        # Best upper bound found so far
         self.best_ub = num_nodes
+        ## @var complG
+        # Complement of the graph
         self.complG = None
 
     ##### Complement
@@ -184,8 +213,8 @@ class Graph:
         """
         Set the coloring heuristic.
 
-        :param coloring_algorithm: Heuristic used to approximate the upper bound for the chromatic number
-        :type coloring_algorithm: ColoringHeuristic
+        :param algorithm: Heuristic used to approximate the upper bound for the chromatic number
+        :type algorithm: ColoringHeuristic
         """
         self.coloring_algorithm = algorithm
 
@@ -193,8 +222,8 @@ class Graph:
         """
         Set the Max Clique heuristic.
         
-        :param clique_algorithm: Heuristic used to approximate the lower bound for the chromatic number
-        :type clique_algorithm: MaxCliqueHeuristic
+        :param algorithm: Heuristic used to approximate the lower bound for the chromatic number
+        :type algorithm: MaxCliqueHeuristic
         """
         self.clique_algorithm = algorithm
 
@@ -202,8 +231,8 @@ class Graph:
         """
         Set the Branching heuristic.
 
-        :param branching_strategy: Heuristic used to branch nodes for this graph instance
-        :type branching_strategy: BranchingStrategy
+        :param strategy: Heuristic used to branch nodes for this graph instance
+        :type strategy: BranchingStrategy
         """
         self.branching_strategy = strategy
 
@@ -211,8 +240,6 @@ class Graph:
         """
         Uses the graph's coloring heuristic to find a proper coloring of the graph, then returns it.
         
-        :param graph: Graph to color
-        :type graph: Graph
         :param union_find: Data Structure to keep track of vertex colors
         :type union_find: UnionFind
         :param added_edges: List of edges to add to the graph
@@ -230,8 +257,6 @@ class Graph:
         """
         Uses the graph's Max Clique heuristic to find a set of nodes that form the maximum clique of the graph, then returns it.
 
-        :param graph: The graph to find the maximum clique in
-        :type graph: Graph
         :param union_find: Data structure to keep track of vertex colors
         :type union_find: UnionFind
         :param added_edges: Data structure to keep track of vertices with different colors

@@ -44,6 +44,8 @@ class BranchingStrategy(ABC):
         :type graph: Graph
         :param union_find: Data Structure to keep track of vertex colors
         :type union_find: UnionFind
+        :param added_edges: Data structure to keep track of vertices with different colors
+        :type added_edges: list
         :return: Tuple of non-adjacent vertices to branch on, or (None, None) if no such pair exists
         :rtype: tuple
         """

@@ -89,9 +89,7 @@ class ColoringHeuristic(ABC):
 
 class DSatur(ColoringHeuristic):
     """
-    DSatur coloring heuristic.
-    The ordering in which colors are assigned to nodes is determined dynamically on node saturation.
-    Ties resolved by node degree.
+    DSatur coloring heuristic. The ordering in which colors are assigned to nodes is determined dynamically on node saturation. Ties resolved by node degree.
     """
 
     def find_coloring(self, graph, uf, added_edges):
@@ -126,11 +124,7 @@ class DSatur(ColoringHeuristic):
 
 class BacktrackingDSatur(ColoringHeuristic):
     """
-    Backtracking DSatur coloring algorithm.
-    Uses the DSATUR heuristic with backtracking to find a valid coloring with the minimum number of colors.
-    Node selection is performed by saturation, breaking ties by degree. 
-    Some randomness is added to explore the solution space.
-    Backtracking happens when there are no possible color assignments that do not use more colors than the current best upper bound
+    Backtracking DSatur coloring algorithm. Uses stochastic approach when exploring and the DSATUR heuristic with backtracking to find a valid coloring with the minimum number of colors.
     """
     def __init__(self, time_limit=0.6):
         """
@@ -140,8 +134,18 @@ class BacktrackingDSatur(ColoringHeuristic):
         :type time_limit: float
         """
         super().__init__()
+        ## @var dsatur
+        # DSatur heuristic to use for initial coloring
         self.dsatur = DSatur()
+        ## @var time_limit
+        # Max execution time in seconds for this algorithm
         self.time_limit = time_limit
+        ## @var best_coloring
+        # Best coloring found by the algorithm
+        self.best_coloring = []
+        ## @var best_num_colors
+        # Number of colors used in the best coloring
+        self.best_num_colors = 0
 
     def find_coloring(self, graph, uf, added_edges):
         local_obj = BacktrackingDSatur(self.time_limit)
@@ -153,8 +157,8 @@ class BacktrackingDSatur(ColoringHeuristic):
 
         :param graph: Graph to color
         :type graph: Graph
-        :param union_find: Data Structure to keep track of vertex colors
-        :type union_find: UnionFind
+        :param uf: Data Structure to keep track of vertex colors
+        :type uf: UnionFind
         :param added_edges: List of edges to add to the graph
         :type added_edges: list
         :return: List of colors
@@ -210,8 +214,7 @@ class BacktrackingDSatur(ColoringHeuristic):
 
 class ParallelBacktrackingDSatur(BacktrackingDSatur):
     """
-    Parallel version of Backtracking DSatur that runs multiple instances on different threads
-    Each instance will try different assignments due to the randomness in the ordering of nodes.
+    Parallel version of Backtracking DSatur that runs multiple instances on different threads. Each instance will try different assignments due to the randomness in the ordering of nodes.
     """
     def __init__(self, time_limit=0.6, num_workers=5):
         """
@@ -223,6 +226,8 @@ class ParallelBacktrackingDSatur(BacktrackingDSatur):
         :type num_workers: int
         """
         super().__init__(time_limit)
+        ## @var num_workers
+        # Number of parallel threads that will run BacktrackingDSatur
         self.num_workers = num_workers
         
     def find_coloring(self, graph, uf, added_edges):
@@ -253,8 +258,14 @@ class TabuSearch(ColoringHeuristic):
         :type initial_coloring_heuristic: ColoringHeuristic
         """
 
+        ## @var max_steps
+        # Max number of steps for this algorithm
         self.max_steps = max_steps
+        ## @var tabu_size
+        # Size of the tabu list to avoid cycling back to recent solutions
         self.tabu_size = tabu_size
+        ## @var initial_coloring_heuristic
+        # Initial coloring heuristic to use
         self.initial_coloring_heuristic = initial_coloring_heuristic
 
     def find_coloring(self, graph, union_find, added_edges):
@@ -328,7 +339,7 @@ class TabuSearch(ColoringHeuristic):
         :param added_edges: List of edges to add to the graph
         :type added_edges: list
         :param tabu_set: Colorings to avoid
-        :param tabu_set: set[tuple[int]]
+        :type tabu_set: set[tuple[int]]
         :return: Best neighbor coloring
         :rtype: list[int]
         """
@@ -399,7 +410,6 @@ class TabuSearch(ColoringHeuristic):
                 if num_colors < best_neighbor_colors:
                     best_neighbor = new_coloring
                     best_neighbor_colors = num_colors
-                    improved = True
         
         return best_neighbor
 
@@ -411,6 +421,8 @@ class SoftMaxTabuSearch(TabuSearch):
 
     def __init__(self, max_steps=100, tabu_size=50, initial_coloring_heuristic=DSatur(), temperature=2):
         super().__init__(max_steps, tabu_size, initial_coloring_heuristic)
+        ## @var temperature
+        # Temperature parameter for the softmax function
         self.temperature = temperature
 
     def select_best_neighbor(self, graph, current_coloring, union_find, added_edges, tabu_set):
@@ -426,7 +438,7 @@ class SoftMaxTabuSearch(TabuSearch):
         :param added_edges: List of edges to add to the graph
         :type added_edges: list
         :param tabu_set: Colorings to avoid
-        :param tabu_set: set[tuple[int]]
+        :type tabu_set: set[tuple[int]]
         :return: Best neighbor coloring
         :rtype: list[int]
         """
@@ -530,6 +542,8 @@ class ParallelTabuSearch(SoftMaxTabuSearch):
 
     def __init__(self, max_steps=750, tabu_size=50, initial_coloring_heuristic=DSatur(), temperature=2, num_workers=5):
         super().__init__(max_steps, tabu_size, initial_coloring_heuristic, temperature)
+        ## @var num_workers
+        # Number of parallel threads that will run TabuSearch
         self.num_workers = num_workers
     
     def find_coloring(self, graph, union_find, added_edges):

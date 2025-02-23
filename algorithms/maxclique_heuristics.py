@@ -91,11 +91,23 @@ class DLS(MaxCliqueHeuristic):
         :type penalty_delay: int
         :default penalty_delay: 1
         """
+        ## @var max_steps
+        # Number of iterations to run the algorithm before stopping
         self.max_steps = max_steps
+        ## @var penalty_delay
+        # Delay in penalty updates
         self.penalty_delay = penalty_delay
+        ## @var penalties
+        # Dictionary of penalties for each vertex
         self.penalties = {}
+        ## @var current_clique
+        # Current clique
         self.current_clique = None
+        ## @var best_clique
+        # Best clique found
         self.best_clique = None
+        ## @var step_count
+        # Number of steps taken
         self.step_count = 0
     
     def initialize_search(self, graph):
@@ -113,8 +125,6 @@ class DLS(MaxCliqueHeuristic):
     def update_penalties(self):
         """Update the penalties for the vertices in the current clique
 
-        :param graph: The graph to find the maximum clique in
-        :type graph: Graph
         """
         for v in self.current_clique:
             self.penalties[v] += 1
@@ -135,10 +145,10 @@ class DLS(MaxCliqueHeuristic):
     def expand(self, graph, clique):
         """Expand the current clique by adding suitable vertices.
 
+        :param graph: The graph to expand the clique in
+        :type graph: Graph
         :param clique: Current clique
         :type clique: set
-        :param penalties: Dictionary of penalties for each vertex
-        :type penalties: dict
         :return: Expanded clique
         """
         while True:
@@ -153,10 +163,10 @@ class DLS(MaxCliqueHeuristic):
     def plateau_search(self, graph, clique):
         """Swap vertices to maintain clique size while exploring plateau.
 
+        :param graph: The graph to plateau search in
+        :type graph: Graph
         :param clique: Current clique
         :type clique: set
-        :param penalties: Dictionary of penalties for each vertex
-        :type penalties: dict
         """
         steps = 0
         while steps < self.max_steps:
@@ -256,10 +266,12 @@ class DLSwithColors(DLS):
     def expand(self, graph, clique, union_find):
         """Color-aware expansion of the current clique by adding vertices with different colors.
 
+        :param graph: Graph to expand the clique in 
+        :type graph: Graph
         :param clique: Current clique
         :type clique: set
-        :param penalties: Dictionary of penalties for each vertex
-        :type penalties: dict
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
         :return: Expanded clique
         """
         while True:
@@ -278,6 +290,8 @@ class DLSwithColors(DLS):
     def plateau_search(self, graph, clique, union_find):
         """Color-aware plateau search by swapping vertices to maintain clique size with vertices of the same color or new colors.
 
+        :param graph: Graph to expand the clique in 
+        :type graph: Graph
         :param clique: Current clique
         :type clique: set
         :param union_find: Data Structure to keep track of vertex colors
@@ -332,8 +346,7 @@ class DLSwithColors(DLS):
 
 class DLSAdaptive(DLS):
     """
-    Adaptive DLS implementation that switches between basic and color-aware strategies
-    based on the state of the coloring and search progress.
+    Adaptive DLS implementation that switches between basic and color-aware strategies based on the state of the coloring and search progress.
     """
     def __init__(self, max_steps=100, penalty_delay=1, color_threshold=0.75):
         """
@@ -347,9 +360,17 @@ class DLSAdaptive(DLS):
         :type color_threshold: float
         """
         super().__init__(max_steps, penalty_delay)
+        ## @var color_threshold
+        # Threshold for switching between strategies
         self.color_threshold = color_threshold
+        ## @var basic_dls
+        # DLS instance for early stage
         self.basic_dls = DLS(max_steps, penalty_delay)
+        ## @var color_dls
+        # DLS instance for later stage
         self.color_dls = DLSwithColors(max_steps, penalty_delay)
+        ## @var current_strategy
+        # Current strategy in use
         self.current_strategy = None
 
     def single_step(self, graph, union_find, added_edges):
@@ -397,8 +418,14 @@ class DLSIncreasingPenalty(DLS):
         :type max_penalty_delay: int
         """
         super().__init__(max_steps, penalty_delay)
+        ## @var increase_interval
+        # Interval for increasing penalty delay
         self.increase_interval = increase_interval
+        ## @var max_penalty_delay
+        # Maximum penalty delay
         self.max_penalty_delay = max_penalty_delay
+        ## @var steps_without_improvement
+        # Number of steps without improvement
         self.steps_without_improvement = 0
 
     def single_step(self, graph, union_find, added_edges):
@@ -431,8 +458,7 @@ class DLSIncreasingPenalty(DLS):
 
 class ParallelDLS(DLS):
     """
-    Parallel DLS implementation using multiprocessing to run multiple DLS solvers
-    with different parameters sampled from a Poisson distribution.
+    Parallel DLS implementation using multiprocessing to run multiple DLS solvers with different parameters sampled from a Poisson distribution.
     """
     def __init__(self, num_workers=5, lambda_max_steps=10, lambda_penalty_delay=1, dls_instance=DLS()):
         """
@@ -440,10 +466,6 @@ class ParallelDLS(DLS):
 
         :param num_workers: Number of parallel DLS solvers to run
         :type num_workers: int
-        :param max_steps: Number of iterations to run each DLS solver
-        :type max_steps: int
-        :param penalty_delay: Initial penalty delay for each solver
-        :type penalty_delay: int
         :param lambda_max_steps: Lambda parameter for Poisson distribution of max_steps
         :type lambda_max_steps: float
         :param lambda_penalty_delay: Lambda parameter for Poisson distribution of penalty_delay
@@ -453,10 +475,25 @@ class ParallelDLS(DLS):
         """
 
         super().__init__(lambda_max_steps, lambda_penalty_delay)
+        ## @var num_workers
+        # Number of parallel DLS solvers to run
         self.num_workers = num_workers
+        ## @var lambda_max_steps
+        # Lambda parameter for Poisson distribution of max_steps
         self.lambda_max_steps = lambda_max_steps
+        ## @var lambda_penalty_delay
+        # Lambda parameter for Poisson distribution of penalty_delay
         self.lambda_penalty_delay = lambda_penalty_delay
+        ## @var dls_instance
+        # An instance of the DLS class to use for solving
         self.dls_instance = dls_instance
+        ## @var best_clique
+        # Best clique found across all solvers
+        self.best_clique = []
+        ## @var current_clique
+        # Current clique found by the solvers
+        self.current_clique = []
+
 
 
 
@@ -493,6 +530,10 @@ class ParallelDLS(DLS):
 
         :param graph: The graph to find the maximum clique in
         :type graph: Graph
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: List of edges to be added to the graph
+        :type added_edges: list
         :return: The best clique found by this solver
         :rtype: set
         """

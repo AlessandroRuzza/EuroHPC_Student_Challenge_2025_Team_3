@@ -52,7 +52,11 @@ class Log():
         :param filepath: path of log file for output
         :type filepath: str
         """
+        ## @var log
+        # Log string
         self.log = ""
+        ## @var filepath
+        # Path of log file
         self.filepath = filepath
 
     def append(self, s):
