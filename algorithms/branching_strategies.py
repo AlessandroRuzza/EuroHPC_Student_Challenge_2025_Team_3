@@ -68,7 +68,7 @@ class BranchingStrategy(ABC):
                     return u, v
         return None, None
 
-class DefaultBranchingStrategy(BranchingStrategy):
+class SimpleBranchingStrategy(BranchingStrategy):
     """
     Simple strategy that uses natural ordering
     """

@@ -17,7 +17,7 @@ sys.path.append(str(utilities_dir.parent))
 sys.path.append(str(graph_dir.parent))
 sys.path.append(str(algorithms_dir.parent))
 
-from utilities.utils import parse_col_file, output_results, Log
+from utilities.utils import parse_col_file, output_results, Log, get_args
 
 from graph.base import *
 
@@ -442,12 +442,15 @@ def solve_instance_parallel(filename, time_limit):
     :type timeLimit: int
     """
     start_time = time.time()
-    graph = parse_col_file(filename)
+
+    args = get_args()
+
+    graph = parse_col_file(args.instance)
 
     # Set up heuristics
-    graph.set_coloring_algorithm(Parallel_BacktrackingDSatur(time_limit=0.6, num_workers=coresPerSlave))
-    graph.set_clique_algorithm(ParallelDLS(num_workers=coresPerSlave, lambda_max_steps=10, dls_instance=DLS()))
-    graph.set_branching_strategy(SaturationBranchingStrategy())
+    graph.set_coloring_algorithm(args.color)
+    graph.set_clique_algorithm(args.clique)
+    graph.set_branching_strategy(args.branch)
 
     chromatic_number, maxCliqueSize, best_coloring = branch_and_bound_parallel(graph, time_limit)
     wall_time = int(time.time() - start_time)

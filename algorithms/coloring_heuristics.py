@@ -130,7 +130,7 @@ class BacktrackingDSatur(ColoringHeuristic):
     Some randomness is added to explore the solution space.
     Backtracking happens when there are no possible color assignments that do not use more colors than the current best upper bound
     """
-    def __init__(self, time_limit):
+    def __init__(self, time_limit=0.6):
         """
         Constructor.
 
@@ -206,12 +206,12 @@ class BacktrackingDSatur(ColoringHeuristic):
         backtrack(coloring)
         return self.best_coloring
 
-class Parallel_BacktrackingDSatur(BacktrackingDSatur):
+class ParallelBacktrackingDSatur(BacktrackingDSatur):
     """
     Parallel version of Backtracking DSatur that runs multiple instances on different threads
     Each instance will try different assignments due to the randomness in the ordering of nodes.
     """
-    def __init__(self, time_limit, num_workers):
+    def __init__(self, time_limit=0.6, num_workers=5):
         """
         Constructor.
 

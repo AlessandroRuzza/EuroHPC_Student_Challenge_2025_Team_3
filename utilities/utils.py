@@ -1,6 +1,22 @@
 import random
 import time
+import argparse
+import importlib
+import inspect
+import sys
+from pathlib import Path
+
+current_dir = Path(__file__).resolve().parent
+
+algorithms_dir = current_dir.parent / 'algorithms'
+graph_dir = current_dir.parent / 'graph'
+sys.path.append(str(graph_dir.parent))
+sys.path.append(str(algorithms_dir.parent))
 from graph.base import Graph
+
+from algorithms.maxclique_heuristics import *
+from algorithms.coloring_heuristics import *
+from algorithms.branching_strategies import *
 
 # Generate a random graph with num_nodes nodes and density probability of edge between any two nodes
 def generate_random_graph(num_nodes, density):
@@ -174,3 +190,111 @@ def output_results(instance_name, solver_name, solver_version, num_workers, num_
         # Write vertex-color assignments
         for vertex in range(graph.num_nodes):
             f.write(f"{vertex+1} {coloring[vertex]}\n")
+
+
+def load_heuristics(module_name):
+    """Dynamically loads all heuristic classes from a file
+    
+    :param module_name: name of the file
+    :type module_name: str
+    :return: dictionary containing the heuristics, keys show their names, the values their respective objects
+    :rtype: dict[str:obj]"""
+
+    module = importlib.import_module(module_name)
+    heuristics = {}
+
+    for name, obj in inspect.getmembers(module, inspect.isclass):
+        if ((hasattr(obj, "find_pair") or  hasattr(obj, "find_max_clique") or hasattr(obj, "find_coloring"))  # Valid classes reference
+            and not inspect.isabstract(obj)): # Remove abstract classes
+            heuristics[name] = obj  
+
+    return heuristics
+
+def instantiate(heuristics, name, default):
+    """
+    Instantiates the heuristics. If none are specified, it chooses the default one. Adds num_workers for parallel ones
+
+    :param heuristics: dict containing all heuristics in a key:value format, check load_heuristics for details
+    :type heuristics: dict[str:obj]
+    :param name: name of the class
+    :type name: str
+    :param default: default class to return if name is None
+    :type param: obj
+    :return: instance of object
+    :rtype: obj
+    """
+
+    # Setting up default parameters
+    if not name:
+        return default
+
+    selected = heuristics[name]
+    if "parallel" in name.lower():
+        return selected(num_workers=5) # Change to cpusPerTask
+    else:
+        return selected()
+
+def get_args():
+    """
+    Parser for the command line arguments
+    Returns a Namespace object args, containing:
+    - in args.instance: the instance file of the graph
+    - in args.branch: the Branching Strategy
+    - in args.color: the Coloring Heuristic
+    - in args.clique: the Max Clique Heuristic
+
+    :raises ValueError: If an invalid heuristic is specified that is not in the available choices.
+    :return: Namespace data structure containing info about file and heuristics specified, check description for details
+    :rtype: Namespace
+
+    
+    """
+    parser = argparse.ArgumentParser(description="Chasing the Perfect Hue: A High-Performance Dive into Graph Coloring\n\nA Graph Coloring Solver utilizing the Branch-and-Bound Framework",
+        formatter_class=argparse.RawTextHelpFormatter  ,
+        epilog=""" 
+Additional Shell Script Parameters:
+-----------------------------------
+TODO
+
+Example Usage:
+--------------
+TODO
+"""
+    )
+
+    parser.add_argument("instance", type=str, help="Graph instance file (utilizing .col format)")
+
+    # Branch and Bound Framework selection
+    parser.add_argument("-s", "--sequential", action="store_true", help="Run in sequential mode")
+    parser.add_argument("-p", "--parallel", action="store_true", help="Run in parallel mode (default)")
+
+    # Optional parameters
+    branch_heuristics = load_heuristics("algorithms.branching_strategies")
+    parser.add_argument("--branch", type=str, choices=list(branch_heuristics.keys()), 
+                        help=f"Branching strategy (default: Saturation)")
+
+    color_heuristics = load_heuristics("algorithms.coloring_heuristics")
+    parser.add_argument("--color", type=str, choices=color_heuristics.keys(), 
+                        help=f"Coloring heuristic (default: ParallelBacktrackingDSatur)")
+    
+
+    clique_heuristics = load_heuristics("algorithms.maxclique_heuristics")
+    parser.add_argument("--clique", type=str, choices=clique_heuristics.keys(), 
+                        help="Clique finding method (default: ParallelDLS)")
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    # If neither -s nor -p is specified set default mode to parallel
+    if not args.sequential and not args.parallel:
+        args.parallel = True  
+
+    
+    args.branch = instantiate(branch_heuristics, args.branch, SaturationBranchingStrategy())
+    
+    args.color = instantiate(color_heuristics, args.color, ParallelBacktrackingDSatur(num_workers=5)) # Change to cpusPerTask
+
+    args.clique = instantiate(clique_heuristics, args.clique, ParallelDLS(num_workers=5)) # Change to cpusPerTask
+
+    return args
+

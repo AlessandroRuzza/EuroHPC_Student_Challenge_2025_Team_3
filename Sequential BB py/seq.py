@@ -16,7 +16,7 @@ sys.path.append(str(utilities_dir.parent))
 sys.path.append(str(graph_dir.parent))
 sys.path.append(str(algorithms_dir.parent))
 
-from utilities.utils import parse_col_file, output_results
+from utilities.utils import parse_col_file, output_results, get_args
 
 from graph.base import *
 
@@ -25,6 +25,11 @@ from algorithms.coloring_heuristics import *
 from algorithms.branching_strategies import *
 
 ##########################################################################################
+
+
+# Configuration parameters
+solver_name = "sequential_DSatur_DLS_DegreeBranching"
+solver_version = "v1.0.1"
 
 # lb - lower bound
 # ub - upper bound
@@ -150,16 +155,17 @@ def solve_instance(filename, timeLimit):
     :return: True if the solution is valid and the time limit was not exceeded, False otherwise
     :rtype: bool
     """
-    graph = parse_col_file(filename)
 
-    # Configuration parameters
-    solver_name = "sequential_DSatur_DLS_DegreeBranching"
-    solver_version = "v1.0.1"
+
+    args = get_args()
+
+    graph = parse_col_file(args.instance)
 
     # Set up heuristics
-    graph.set_coloring_algorithm(DSatur())
-    graph.set_clique_algorithm(ParallelDLS(dls_instance=DLS()))
-    graph.set_branching_strategy(SaturationBranchingStrategy())
+    graph.set_coloring_algorithm(args.color)
+    graph.set_clique_algorithm(args.clique)
+    graph.set_branching_strategy(args.branch)
+
 
     # MPI parameters (not used in this version)
     num_workers = 1

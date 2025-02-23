@@ -75,11 +75,14 @@ class HeuristicCliqueFinder(MaxCliqueHeuristic):
             candidates = [n for n in candidates if n in merged[node]]
         return clique
 
-class BaseDLS(MaxCliqueHeuristic):
-    """Base class for Dynamic Local Search implementations"""
+
+
+class DLS(MaxCliqueHeuristic):
+    """Normal DLS implementation"""
+
     def __init__(self, max_steps=100, penalty_delay=1):
         """
-        Constructor for the BaseDLS class
+        Constructor for the DLS class
 
         :param max_steps: Number of iterations to run the algorithm before stopping
         :type max_steps: int
@@ -169,21 +172,6 @@ class BaseDLS(MaxCliqueHeuristic):
             steps += 1
         return clique
 
-    @abstractmethod
-    def single_step(self, graph, union_find, added_edges):
-        """Perform one step of the DLS algorithm.
-
-        :param graph: The graph to find the maximum clique in
-        :type graph: Graph
-        :param union_find: Data Structure to keep track of vertex colors
-        :type union_find: UnionFind
-        :param added_edges: List of edges to be added to the graph
-        :type added_edges: list
-        :raise NotImplementedError: If the method is not implemented
-        :return: The best clique found in the current step
-        :rtype: set
-        """
-        raise NotImplementedError
 
     def find_max_clique(self, graph, union_find, added_edges):
         """Run the full DLS search
@@ -204,12 +192,19 @@ class BaseDLS(MaxCliqueHeuristic):
         
         return self.best_clique
     
-
-
-class DLS(BaseDLS):
-    """Normal DLS implementation"""
-
     def single_step(self, graph, union_find, added_edges):
+        """Perform one step of the DLS algorithm.
+
+        :param graph: The graph to find the maximum clique in
+        :type graph: Graph
+        :param union_find: Data Structure to keep track of vertex colors
+        :type union_find: UnionFind
+        :param added_edges: List of edges to be added to the graph
+        :type added_edges: list
+        :raise NotImplementedError: If the method is not implemented
+        :return: The best clique found in the current step
+        :rtype: set
+        """
         if self.current_clique is None:
             self.initialize_search(graph)
 
@@ -230,7 +225,7 @@ class DLS(BaseDLS):
         self.step_count += 1
         return self.best_clique
 
-class DLSwithColors(BaseDLS):
+class DLSwithColors(DLS):
     """
     Dynamic Local Search (DLS) implementation that uses information about colors of vertices for finding maximum clique
     """
@@ -335,7 +330,7 @@ class DLSwithColors(BaseDLS):
 
 
 
-class DLSAdaptive(BaseDLS):
+class DLSAdaptive(DLS):
     """
     Adaptive DLS implementation that switches between basic and color-aware strategies
     based on the state of the coloring and search progress.
@@ -383,7 +378,7 @@ class DLSAdaptive(BaseDLS):
         return self.best_clique
 
 
-class DLSIncreasingPenalty(BaseDLS):
+class DLSIncreasingPenalty(DLS):
     """DLS implementation with increasing penalty delay
     After increase_interval steps without improvement, the penalty delay is increased by 1,
     saturating at max_penalty_delay
@@ -434,12 +429,12 @@ class DLSIncreasingPenalty(BaseDLS):
         return self.best_clique
 
 
-class ParallelDLS(BaseDLS):
+class ParallelDLS(DLS):
     """
     Parallel DLS implementation using multiprocessing to run multiple DLS solvers
     with different parameters sampled from a Poisson distribution.
     """
-    def __init__(self, num_workers=5, lambda_max_steps=10, lambda_penalty_delay=1, dls_instance=DLS):
+    def __init__(self, num_workers=5, lambda_max_steps=10, lambda_penalty_delay=1, dls_instance=DLS()):
         """
         Constructor for the ParallelDLS class
 
@@ -454,7 +449,7 @@ class ParallelDLS(BaseDLS):
         :param lambda_penalty_delay: Lambda parameter for Poisson distribution of penalty_delay
         :type lambda_penalty_delay: float
         :param dls_instance: An instance of the DLS class to use for solving
-        :type dls_instance: BaseDLS
+        :type dls_instance: DLS
         """
 
         super().__init__(lambda_max_steps, lambda_penalty_delay)
