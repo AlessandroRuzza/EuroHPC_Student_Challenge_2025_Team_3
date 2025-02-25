@@ -1,0 +1,30 @@
+   instance1    ; nodes, edges ; ( UB,  LB) ; isOptimum ; wall_time ; nTasks, cpusPerTask
+    anna.col    ;  138 ,  986  ; ( 11,  11) ;    Yes    ;   1   sec ;   8   ,   32 
+   david.col    ;   87 ,  812  ; ( 11,  11) ;    Yes    ;   1   sec ;   8   ,   32 
+   fpsol2.col   ;  496 , 23308 ; ( 65,  65) ;    Yes    ;   14  sec ;   8   ,   32 
+  games120.col  ;  120 ,  1276 ; ( 9 ,  9 ) ;    Yes    ;   1   sec ;   8   ,   32 
+   homer.col    ;  561 ,  3256 ; ( 13,  13) ;    Yes    ;   3   sec ;   8   ,   32 
+    huck.col    ;   74 ,  602  ; ( 11,  11) ;    Yes    ;   1   sec ;   8   ,   32 
+   inithx.col   ;  621 , 27938 ; ( 31,  31) ;    Yes    ;   12  sec ;   8   ,   32 
+    jean.col    ;   80 ,  508  ; ( 10,  10) ;    Yes    ;   1   sec ;   8   ,   32 
+  le450_5b.col  ;  450 , 11468 ; ( 6 ,  5 ) ;  Unknown  ;  9903 sec ;   8   ,   32 
+ miles1500.col  ;  128 , 10396 ; ( 73,  73) ;    Yes    ;   7   sec ;   8   ,   32 
+  miles250.col  ;  128 ,  774  ; ( 8 ,  8 ) ;    Yes    ;   1   sec ;   8   ,   32 
+   mulsol.col   ;  197 ,  7850 ; ( 49,  49) ;    Yes    ;   5   sec ;   8   ,   32 
+  myciel4.col   ;   23 ,  142  ; ( 5 ,  2 ) ;    Yes    ;  9900 sec ;   8   ,   32 
+  myciel5.col   ;   47 ,  472  ; ( 6 ,  2 ) ;  Unknown  ;  9901 sec ;   8   ,   32 
+  myciel7.col   ;  191 ,  4720 ; ( 8 ,  2 ) ;  Unknown  ;  9902 sec ;   8   ,   32 
+ queen10_10.col ;  100 ,  2940 ; ( 12,  10) ;    Yes    ;  9900 sec ;   8   ,   32 
+ queen11_11.col ;  121 ,  3960 ; ( 13,  11) ;  Unknown  ;  9905 sec ;   8   ,   32 
+ queen12_12.col ;  144 ,  5192 ; ( 14,  12) ;  Unknown  ;  9902 sec ;   8   ,   32 
+ queen13_13.col ;  169 ,  6656 ; ( 16,  13) ;  Unknown  ;  9903 sec ;   8   ,   32 
+ queen14_14.col ;  196 ,  8372 ; ( 17,  14) ;  Unknown  ;  9901 sec ;   8   ,   32 
+ queen15_15.col ;  225 , 10360 ; ( 18,  15) ;  Unknown  ;  9902 sec ;   8   ,   32 
+  queen5_5.col  ;   25 ,  320  ; ( 5 ,  5 ) ;    Yes    ;   0   sec ;   8   ,   32 
+  queen6_6.col  ;   36 ,  580  ; ( 7 ,  6 ) ;    Yes    ;  9900 sec ;   8   ,   32 
+  queen7_7.col  ;   49 ,  952  ; ( 7 ,  7 ) ;    Yes    ;   38  sec ;   8   ,   32 
+ queen8_12.col  ;   96 ,  2736 ; ( 12,  12) ;    Yes    ;   23  sec ;   8   ,   32 
+  queen8_8.col  ;   64 ,  1456 ; ( 10,  8 ) ;  Unknown  ;  9902 sec ;   8   ,   32 
+  queen9_9.col  ;   81 ,  2112 ; ( 11,  9 ) ;  Unknown  ;  9901 sec ;   8   ,   32 
+  school1.col   ;  385 , 38190 ; ( 15,  14) ;  Unknown  ;  9910 sec ;   8   ,   32 
+   zeroin.col   ;  211 ,  8200 ; ( 49,  49) ;    Yes    ;   7   sec ;   8   ,   32 

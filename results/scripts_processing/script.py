@@ -20,6 +20,7 @@ max_clique_size: 65
 2 1
 """
 results_root = "../"
+instance_root = "../../instances/"
 
 output_files = listdir(results_root)
 
@@ -29,10 +30,13 @@ output_files = [join(results_root, f) for f in output_files if isfile(join(resul
 def read_line_value(file, width):
     return file.readline().split(": ")[1].strip('\n').center(width)
 
+optimal_count = 0
+instanceCount = 0
 final_lines = ["instance1".center(15) + " ; nodes, edges ; ( UB,  LB) ; isOptimum ; wall_time ; nTasks, cpusPerTask\n",]
 for output in output_files:
     with open(output, "r") as file:
         instanceName = read_line_value(file, 15)
+        instanceCount += 1
         file.readline() # Skip cmd_line
         file.readline() # Skip solver_version
         numVertices = read_line_value(file, 5)
@@ -47,6 +51,7 @@ for output in output_files:
 
         # Processing
         isOptimal = "Yes" if timedOut == "True" else "Unknown"
+        if isOptimal == "Yes": optimal_count += 1
         isOptimal = isOptimal.center(9)
         
         final_lines.append(f"{instanceName} ; {numVertices}, {numEdges} ; ({chromatic_number}, {max_clique_size})")
@@ -62,4 +67,13 @@ for output in output_files:
 result_postprocessed_output = "./result_table.out"
 with open(result_postprocessed_output, "w") as postProcess_out:
     postProcess_out.writelines(final_lines)
+
+print(f"Optimal instances solved: {optimal_count}/{instanceCount}  (total number of instances = {len(listdir(instance_root))})")
+print("Missing: ")
+
+instList = set(s.split(".")[0] for s in listdir(instance_root))
+solvedList = set(s.split("/")[-1].split(".")[0] for s in output_files)
+
+diff = instList - solvedList
+print(diff)
 
