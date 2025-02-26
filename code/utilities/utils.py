@@ -249,6 +249,7 @@ def get_args():
     Parser for the command line arguments
     Returns a Namespace object args, containing:
     - in args.instance: the instance file of the graph
+    - in args.outFolderPath: the output folder for the results
     - in args.branch: the Branching Strategy
     - in args.color: the Coloring Heuristic
     - in args.clique: the Max Clique Heuristic
@@ -262,25 +263,19 @@ def get_args():
     parser = argparse.ArgumentParser(description="Chasing the Perfect Hue: A High-Performance Dive into Graph Coloring\n\nA Graph Coloring Solver utilizing the Branch-and-Bound Framework",
         formatter_class=argparse.RawTextHelpFormatter  ,
         epilog=""" 
-Additional Shell Script Parameters:
------------------------------------
-TODO
-
 Example Usage:
 --------------
-mpi.py ../instances/anna.col ../results/2h_test_output/ -p --cpusPerTask 16 --branch SaturationBranchingStrategy --color ParallelBacktrackingDSatur --clique ParallelDLS
+mpi.py ../instances/anna.col ../results/2h_test_output/ --cpusPerTask 16 --branch SaturationBranchingStrategy --color ParallelBacktrackingDSatur --clique ParallelDLS
 """
     )
 
     parser.add_argument("instance", type=str, help="Graph instance file (utilizing .col format)")
     parser.add_argument("outFolderPath", type=str, help="Output folder of the execution")
 
-    # Branch and Bound Framework selection
-    parser.add_argument("-s", "--sequential", action="store_true", help="Run in sequential mode")
-    parser.add_argument("-p", "--parallel", action="store_true", help="Run in parallel mode (default)")
+    # Heuristic Parallelisation parameter 
     parser.add_argument("--cpusPerTask", type=int, default=8, help="Number of threads to use for each worker, ignored for non-parallel heuristics")
 
-    # Optional parameters
+    # Heuristic parameters
     branch_heuristics = load_heuristics("algorithms.branching_strategies")
     parser.add_argument("--branch", type=str, choices=list(branch_heuristics.keys()), 
                         help=f"Branching strategy (default: Saturation)")
@@ -296,11 +291,6 @@ mpi.py ../instances/anna.col ../results/2h_test_output/ -p --cpusPerTask 16 --br
 
     # Parse arguments
     args = parser.parse_args()
-
-    # If neither -s nor -p is specified set default mode to parallel
-    if not args.sequential and not args.parallel:
-        args.parallel = True  
-
     
     args.branch = instantiate(branch_heuristics, args.branch, SaturationBranchingStrategy(), args)
     

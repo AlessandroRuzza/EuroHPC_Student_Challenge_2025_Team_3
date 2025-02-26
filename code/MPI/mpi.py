@@ -58,6 +58,8 @@ if args.outFolderPath.endswith("/"):
     args.outFolderPath = args.outFolderPath.rstrip("/")
 if not isdir(args.outFolderPath):
     mkdir(args.outFolderPath)
+if not isdir(args.outFolderPath + "/output"):
+    mkdir(args.outFolderPath + "/output")
 
 # Logging parameters
 outLogFolder = args.outFolderPath + "/logs"
@@ -477,7 +479,7 @@ def solve_instance_parallel(filename, time_limit):
         
         output_results(
             instance_name=filename,
-            outputFolder=args.outFolderPath,
+            output_folder=args.outFolderPath,
             solver_name=solverName,
             solver_version=solverVersion,
             num_workers=size,
