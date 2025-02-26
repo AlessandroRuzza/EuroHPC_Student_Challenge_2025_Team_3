@@ -24,6 +24,7 @@ from graph.base import *
 from algorithms.maxclique_heuristics import *
 from algorithms.coloring_heuristics import *
 from algorithms.branching_strategies import *
+from algorithms.hybrid_branching import *
 
 from copy import deepcopy
 
@@ -32,7 +33,7 @@ solverName = "MPI_BacktrackingDSatur_DLS"
 solverVersion = "v1.0.1"
 
 # Debug flags
-debugSlave = False
+debugWorker = False
 debugBounds = True
 debugQueue = False
 
@@ -42,15 +43,15 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 
 # Work sharing parameter
-nodesPerSlave = 5
+nodesPerWorker = 5
 
 # Branch parameters
 worsenTolerance = 1
-minQueueLenForPruning = size*2 * nodesPerSlave
+minQueueLenForPruning = size*2 * nodesPerWorker
 
 # Time parameters
 TIME_LIMIT = 10_000
-TIME_THRESHOLD = 100 # Time remaining before concluding slave computations
+TIME_THRESHOLD = 100 # Time remaining before concluding worker computations
 
 # Args parsing
 args = get_args()
@@ -66,14 +67,14 @@ if not isdir(outLogFolder) and rank==0:
 
 log = Log(outLogFolder + "/log")
 
-def printDebugSlave(str):
+def printDebugWorker(str):
     """
-    Print debug messages for slave processes if debugSlave is True
+    Print debug messages for worker processes if debugWorker is True
     
     :param str: message to print
     :type str: str
     """
-    if debugSlave: print(str)
+    if debugWorker: print(str)
 
 def printDebugBounds(str):
     """
@@ -95,9 +96,9 @@ def printConditional(str, condition):
     """
     if condition: print(str)
     
-def printMaster(str):
+def printManager(str):
     """
-    Print a message if called by the master process
+    Print a message if called by the manager process
 
     :param str: message to print
     :type str: str
@@ -181,20 +182,20 @@ def branch_node(graph, node):
 
     return childNodes
 
-def handle_slave(graph, slaveRank, 
+def handle_worker(graph, workerRank, 
                  queueLock: Condition, queue: list[BranchAndBoundNode],
                  best_ub_lock: Condition, best_ub, best_lb, best_coloring: list,
                  optimalEvent: Event, timeoutEvent: Event, 
                  start_time, time_limit, shared_node_id):
     
     """
-    Manages the slave process from the master process in a parallel branch and bound algorithm. 
-    Distributing the work to the slaves, and collecting results
+    Manages the worker process from the manager process in a parallel branch and bound algorithm. 
+    Distributing the work to the workers, and collecting results
 
     :param graph: The graph to solve.
     :type graph: Graph
-    :param slaveRank: The rank of the slave process.
-    :type slaveRank: int
+    :param workerRank: The rank of the worker process.
+    :type workerRank: int
     :param queueLock: A condition variable for synchronizing access to the queue.
     :type queueLock: Condition
     :param queue: The queue of nodes to be processed.
@@ -247,7 +248,7 @@ def handle_slave(graph, slaveRank,
 
             if timeoutEvent.is_set() or optimalEvent.is_set():
                 break
-            numNodes = min(len(queue), nodesPerSlave)
+            numNodes = min(len(queue), nodesPerWorker)
             nodes = []
             for _ in range(numNodes):
                 node = queue.pop(0)
@@ -264,12 +265,12 @@ def handle_slave(graph, slaveRank,
                 if node.ub > best_ub[0]+worsenTolerance and len(queue) > minQueueLenForPruning:  
                     pruneNodes.append(node)
                 if node.ub < best_ub[0]:
-                    printDebugBounds(f"Slave {slaveRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
+                    printDebugBounds(f"Worker {workerRank} improved UB = {node.ub} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
                     best_coloring.clear()
                     best_coloring.extend(node.coloring)
                     best_ub[0] = node.ub
                 if node.lb > best_lb[0]:
-                    printDebugBounds(f"Slave {slaveRank} improved LB = {node.lb} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
+                    printDebugBounds(f"Worker {workerRank} improved LB = {node.lb} Time = {int(elapsed/60)}m {elapsed%60:.3f}s")
                     best_lb[0] = node.lb
                 if best_lb[0] == best_ub[0]:
                     optimalFound = True
@@ -284,12 +285,12 @@ def handle_slave(graph, slaveRank,
 
         if not nodes: continue
         
-        # Send (best_ub, nodes) to slave for branching
-        comm.send((best_ub[0], nodes), slaveRank)
-        childNodes = comm.recv(source=slaveRank)
+        # Send (best_ub, nodes) to worker for branching
+        comm.send((best_ub[0], nodes), workerRank)
+        childNodes = comm.recv(source=workerRank)
 
         if childNodes == "Terminated":
-            printDebugSlave(f"Slave Handler {slaveRank} received termination.")
+            printDebugWorker(f"Worker Handler {workerRank} received termination.")
             return
         
         if childNodes is None:
@@ -300,19 +301,19 @@ def handle_slave(graph, slaveRank,
                 queue.append(n)
             queueLock.notify(len(childNodes))
 
-    # Ensure to kill slave before terminating thread
-    comm.send("Kill", slaveRank)
-    response = comm.recv(source=slaveRank)
+    # Ensure to kill worker before terminating thread
+    comm.send("Kill", workerRank)
+    response = comm.recv(source=workerRank)
     while response != "Terminated":
-        response = comm.recv(source=slaveRank)
-    printDebugSlave(f"Slave Handler {slaveRank} received termination.")
+        response = comm.recv(source=workerRank)
+    printDebugWorker(f"Worker Handler {workerRank} received termination.")
     return None
 
-def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], 
+def manager_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode], 
                             best_ub, best_lb, best_coloring, 
                             start_time, time_limit=10000):
     """
-    Master process that sends nodes to slave processes and receives the new nodes generated by them
+    Manager process that sends nodes to worker processes and receives the new nodes generated by them
     until an optimal solution is found or the time limit is reached
 
     :param graph: graph to solve
@@ -333,9 +334,9 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode],
     :rtype: int, int, list
     """
 
-    # Run threads that interface with each slave (ranks [1, 2, 3, ..., size-1] )
+    # Run threads that interface with each worker (ranks [1, 2, 3, ..., size-1] )
     # Initialize shared variables
-    slaveHandlers: list[Thread] = []
+    workerHandlers: list[Thread] = []
     queueLock = Condition()
     best_ub_lock = Lock()
     best_ub = [best_ub,]
@@ -344,22 +345,22 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode],
     timeoutEvent = Event()
     shared_node_id = [0,]
 
-    for slaveRank in range(1, size):
-        slaveHandlers.append(Thread(daemon=True, target=handle_slave, 
-                                    args=(graph,slaveRank, queueLock,queue, 
+    for workerRank in range(1, size):
+        workerHandlers.append(Thread(daemon=True, target=handle_worker, 
+                                    args=(graph,workerRank, queueLock,queue, 
                                           best_ub_lock,best_ub,best_lb,best_coloring, 
                                           optimalEvent,timeoutEvent, 
                                           start_time,time_limit, shared_node_id)))
 
-    for slave in slaveHandlers:
-        slave.start()
+    for worker in workerHandlers:
+        worker.start()
 
     elapsed = time.time() - start_time
-    optimalEvent.wait(timeout=time_limit-elapsed)     # First slave handler that finds an optimal node will notify this lock
+    optimalEvent.wait(timeout=time_limit-elapsed)     # First worker handler that finds an optimal node will notify this lock
 
-    printDebugSlave("Returning, terminating slaves.")
-    for slave in slaveHandlers:
-        slave.join() # Ensure all threads terminated (implies all slaves terminated as well)
+    printDebugWorker("Returning, terminating workers.")
+    for worker in workerHandlers:
+        worker.join() # Ensure all threads terminated (implies all workers terminated as well)
 
     # Before exiting, check all the generated nodes for improvements
     if timeoutEvent.is_set() and queue:
@@ -369,19 +370,19 @@ def master_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode],
     # Run one thread that solves nodes in this process? (to not waste resources)
     return best_ub[0], best_lb[0], best_coloring
 
-def slave_branch_and_bound(graph, start_time, time_limit):
+def worker_branch_and_bound(graph, start_time, time_limit):
     """
-    Process executed by the slave that receives nodes from master, computes their lower bounds and upper bounds, and sends back the results
+    Process executed by the worker that receives nodes from manager, computes their lower bounds and upper bounds, and sends back the results
     
     :param graph: graph to solve
     :type graph: Graph
     """
     while True:
-        # Wait to receive work from master
+        # Wait to receive work from manager
         nodes = comm.recv(source=0)
         if nodes == "Kill":
             comm.send("Terminated", 0)
-            printDebugSlave(f"Slave {rank} sent termination.")
+            printDebugWorker(f"Worker {rank} sent termination.")
             return
         
         best_ub, nodes = nodes
@@ -438,9 +439,9 @@ def branch_and_bound_parallel(graph, time_limit=10000):
         print(f"Coloring time = {int(colorTime/60)}m {colorTime%60:.3f}s")
         print(f"Clique time = {int(cliqueTime/60)}m {cliqueTime%60:.3f}s")
         queue.append(BranchAndBoundNode(initial_uf, initial_edges, lb, ub, initial_coloring))
-        return master_branch_and_bound(graph, queue, best_ub, best_lb, initial_coloring, start_time, time_limit)
+        return manager_branch_and_bound(graph, queue, best_ub, best_lb, initial_coloring, start_time, time_limit)
     else:
-        slave_branch_and_bound(graph, start_time, time_limit)
+        worker_branch_and_bound(graph, start_time, time_limit)
         return None, None, None
 
 def solve_instance_parallel(filename, time_limit):
@@ -495,22 +496,22 @@ def main():
     """
     Main Function.
     """
-    printMaster(f"MPI size = {size}")
+    printManager(f"MPI size = {size}")
 
     random.seed(10)
     
     instance = args.instance
     if not isfile(instance):
-        printMaster(f"Bad instance path parameter! {instance} is not a file")
+        printManager(f"Bad instance path parameter! {instance} is not a file")
         sys.exit(1)
     
     log.filepath = f"{outLogFolder}/{instance.split('/')[2]}.log"
     
-    printMaster(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
+    printManager(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
     
     time_limit = TIME_LIMIT-TIME_THRESHOLD
 
-    printMaster(f"Solving {instance}...")
+    printManager(f"Solving {instance}...")
     chromatic_number, maxCliqueSize, best_coloring = solve_instance_parallel(instance, time_limit)
 
     comm.barrier() # Ensure all ranks finished
