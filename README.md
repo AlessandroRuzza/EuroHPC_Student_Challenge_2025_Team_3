@@ -7,16 +7,22 @@ This project was developed for the EuroHPC Summit Student Challenge 2025, levera
 
 
 ## Table of Contents
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Parallel Version](#parallel-version)
-  - [Sequential Version](#sequential-version)
+- [EuMaster4HPC Student Challenge 2025](#eumaster4hpc-student-challenge-2025)
+  - [Chasing the Perfect Hue: A High-Performance Dive into Graph Coloring](#chasing-the-perfect-hue-a-high-performance-dive-into-graph-coloring)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Installation](#installation)
+  - [Usage on local machine](#usage-on-local-machine)
+    - [Parallel Version](#parallel-version)
+      - [Optional Parameters:](#optional-parameters)
+      - [Example of usage:](#example-of-usage)
+      - [Output:](#output)
+    - [Sequential Version](#sequential-version)
   - [Usage on Vega](#usage-on-vega)
-- [Documentation](#documentation)
-- [Results & Benchmarks](#results--benchmarks)
-- [References](#references)
-- [Acknowledgments](#acknowledgments)
+  - [Documentation](#documentation)
+  - [Results \& Benchmarks](#results--benchmarks)
+  - [References](#references)
+  - [Acknowledgments](#acknowledgments)
 
 
 ## Features
@@ -30,31 +36,19 @@ This project was developed for the EuroHPC Summit Student Challenge 2025, levera
 
 ## Installation
 
-### Prerequisites
-- **MPI** (mpi4py)
-- **Python 3**
+See ```INSTALL.md```
 
-### Steps
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Rudolfovoorg/EuroHPC_Student_Challenge_2025_Team_3.git
-   cd [name]
-   ```
-2. Install requirements:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Usage 
+## Usage on local machine
 
 ### Parallel Version
 
 To run the parallel solver, use:
    ```bash
+   cd code
 python mpirun -n NUM_NODES python MPI/mpi.py [OPTIONS] instance outFolderPath
    ```
-   #### Arguments:
-   - ```NUM_NODES```: The number of MPI nodes to utilize
+   Where the parameters are:
+   - ```NUM_NODES```: The number of MPI nodes to utilize (**minimum of 2**)
    - ```instance```: The instance file of the graph (utilizing .col format)
 
    - ```outFolderPath```: The folder to store the results
@@ -68,7 +62,7 @@ python mpirun -n NUM_NODES python MPI/mpi.py [OPTIONS] instance outFolderPath
    - ```--clique CLIQUE```: select a specific max clique heuristic to compute the lower bound, default: ParallelDLS
 
 #### Example of usage:
-```
+```bash
 python mpirun -n 4 MPI/mpi.py ../instances/anna.col ../results/2h_test_output/ --cpusPerTask 16 --branch SaturationBranchingStrategy --color ParallelBacktrackingDSatur --clique ParallelDLS
  ```
 
@@ -82,19 +76,37 @@ The results will be displayed inside the specified ```outFolderPath``` folder, w
 
 To utilize the parallel solver, type the following commnad:
    ```bash
-python python SEQUENTIAL/seq.py [OPTIONS] instance outFolderPath
+python SEQUENTIAL/seq.py [OPTIONS] instance outFolderPath
    ```
 
 The optional arguments are the same of the parallel version
 
-### Usage on Vega
+## Usage on Vega
 
-To run on Vega, you have to 
+First, navigate to the ```code``` folder, where the ```.sh``` files are located.
+
+Then, to run on Vega you have three options:
+- Manual srun command, as detailed <a link="https://en-vegadocs.vega.izum.si/first-job/">here</a>:
+  - First, load the required modules:
+    - ```module load mpi4py```
+    - ```module load SciPy-bundle```
+  - Usage: ```srun [srun args] python MPI/mpi.py [OPTIONS] instance outFolder```
+  - Note that the mpirun command is not required on VEGA (MPI ranks are determined by the number of tasks of the job)
+  - Make sure to run at least 2 tasks (e.g. with the srun argument ```--ntasks 4```)
+- Our ```run_job.sh```, to be run with sbatch command (**suggested**) (<a link="https://en-vegadocs.vega.izum.si/first-job/">sbatch command details</a>)
+  - Usage: ```sbatch [optional sbatch args] run_job.sh <Instance name> <outFolderPath>```
+  - The instance name should only be ```name.col```, the shell will internally complete the path to ```../instances/name.col```.
+  - Edit ```run_job.sh``` if you want to add optional parameters to the execution or edit the resources requested by the job.
+- Our ```launch_all_instances.sh``` shell
+  - Usage: ```sh launch_all_instances.sh <outFolderPath>```
+  - The shell will launch a batch job (using ```run_job.sh```) for each instance in the ```../instances/``` folder.
+  - The output of each job will be collected in the output folder passed as argument (```outFolderPath```)
 
 
 ## Documentation
 
-For a detailed view of the documentation, look at the ```docs/``` folder
+For a detailed view of the documentation, open the ```docs/index.html``` file in the local browser. <br>
+The documentation was generated using Doxygen.
 
 ## Results & Benchmarks
 
@@ -102,7 +114,8 @@ TODO
 
 ## References
 
-
+- R.M.R Lewis. A Guide to Graph Coloring - Algorithms and Applications
+- Qinghua Wu. The maximum clique problems with applications to graph coloring.
 
 ## Acknowledgments
 
@@ -110,5 +123,5 @@ TODO
 
 - Mentors: Mirko Rahn: <mirko.rahn@itwm.fraunhofer.de>
 
-- Institutions: Politecnico di Milano, Sofia University, Universitat Politècnica de Catalunya
+- Institutions: Politecnico di Milano, Sofia University, Università della Svizzera Italiana, Universitat Politècnica de Catalunya
 

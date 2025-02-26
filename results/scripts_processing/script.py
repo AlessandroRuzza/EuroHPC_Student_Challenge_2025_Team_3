@@ -1,5 +1,6 @@
 from os import listdir, stat
 from os.path import isfile, join
+import sys
 
 """
 instance.output file format:
@@ -19,7 +20,11 @@ max_clique_size: 65
 1 0
 2 1
 """
-results_root = "../"
+if len(sys.argv) < 2:
+    print("Usage: py script.py <folder containing *.output files>")
+    print("Example: py script.py ../results/folder/output/")
+results_root = sys.argv[1]
+result_table_file = f"./{results_root.split("/")[-2]}.table"
 instance_root = "../../instances/"
 
 output_files = listdir(results_root)
@@ -64,9 +69,8 @@ for output in output_files:
         ...
         """
 
-result_postprocessed_output = "./result_table.out"
-with open(result_postprocessed_output, "w") as postProcess_out:
-    postProcess_out.writelines(final_lines)
+with open(result_table_file, "w") as table_out:
+    table_out.writelines(final_lines)
 
 print(f"Optimal instances solved: {optimal_count}/{instanceCount}  (total number of instances = {len(listdir(instance_root))})")
 print("Missing: ")

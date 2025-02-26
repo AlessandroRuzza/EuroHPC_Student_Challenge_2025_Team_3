@@ -21,7 +21,7 @@
 
 1. **Work Distribution and Load Balancing:**
    - **Queue Ownership:**  
-     Only rank 0 initially populates the queue. Other processes might remain idle or participate only in the reduction of the global best upper bound. To better leverage all MPI processes, maybe a master–worker model or dynamic work-stealing where branch nodes are distributed among processes.
+     Only rank 0 initially populates the queue. Other processes might remain idle or participate only in the reduction of the global best upper bound. To better leverage all MPI processes, maybe manager–worker model or dynamic work-stealing where branch nodes are distributed among processes.
    - **Communication Overhead:**  
      The only shared information is the best upper bound. Depending on how heavy the branch-and-bound tree is, you might want to distribute parts of the search tree across ranks more actively.
 
@@ -42,8 +42,8 @@
 - **Is it optimized?**  
   It’s a good baseline implementation, but there is room for improvement:
   - Better distribution of work across MPI processes.
-      - Centralize the queue (master-slave structure)
-      - Parallelize heuristics within a slave
-      - Parallelize branch node processing withing a slave (if not fully utilizing computational resources)
+      - Centralize the queue (manager-worker structure)
+      - Parallelize heuristics within a worker
+      - Parallelize branch node processing withing a worker (if not fully utilizing computational resources)
   - Reduction of overhead from deep copies.
   - Possibly refining the heuristics and logging more details for analysis.
