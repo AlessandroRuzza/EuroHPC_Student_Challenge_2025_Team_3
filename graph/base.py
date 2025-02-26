@@ -57,7 +57,7 @@ class BranchAndBoundNode:
     Node for the branch and bound algorithm. Nodes have an id purely for logging purposes.
     """
     
-    def __init__(self, union_find, added_edges, lb, ub, coloring):
+    def __init__(self, union_find, added_edges, lb, ub, coloring, depth=0):
         """
         Constructor for the BranchAndBoundNode class.
 
@@ -71,6 +71,8 @@ class BranchAndBoundNode:
         :type ub: int
         :param coloring: Coloring found in the current node
         :type coloring: list[int]
+        :param depth: Node depth in the branching
+        :type depth: int
         """
         ## @var id
         # Identifier of the node
@@ -90,6 +92,9 @@ class BranchAndBoundNode:
         ## @var coloring
         # Coloring found in the current node
         self.coloring = coloring
+        ## @var depth
+        # Depth of node in the branching tree
+        self.depth = depth
 
     def __lt__(self, other):
         """
@@ -270,7 +275,7 @@ class Graph:
 
         return self.clique_algorithm.find_max_clique(self, union_find, added_edges)
 
-    def find_pair(self, union_find, added_edges):
+    def find_pair(self, union_find, added_edges, depth):
         """
         Uses the graph's Branching heuristic to find a pair of nodes to branch on, then returns it.
 
@@ -285,7 +290,7 @@ class Graph:
         if self.branching_strategy is None:
             raise ValueError("No branching strategy set")
 
-        return self.branching_strategy.find_pair(self, union_find, added_edges)
+        return self.branching_strategy.find_pair(self, union_find, added_edges, depth)
 
 
     ##### Helper functions

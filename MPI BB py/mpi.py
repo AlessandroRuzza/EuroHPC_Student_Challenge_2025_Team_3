@@ -24,7 +24,6 @@ from graph.base import *
 from algorithms.maxclique_heuristics import *
 from algorithms.coloring_heuristics import *
 from algorithms.branching_strategies import *
-from algorithms.hybrid_branching import *
 
 from copy import deepcopy
 
@@ -120,7 +119,7 @@ def branch_node(graph, node):
     """
 
     # Find a pair of nodes to branch on
-    u, v = graph.find_pair(node.union_find, node.added_edges)
+    u, v = graph.find_pair(node.union_find, node.added_edges, node.depth)
     if u is None:
         return []
     
@@ -155,7 +154,7 @@ def branch_node(graph, node):
         coloring = graph.find_coloring(uf1, edges1)
         ub1 = len(set(coloring))
 
-        childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1, coloring))
+        childNodes.append(BranchAndBoundNode(uf1, edges1, lb1, ub1, coloring, node.depth+1))
         log.append(f"Node {node.id} branched by imposing {u}, {v} have the same color \n")
         log.append(f"Branch 1 child node results: \n")
         log.append(f"Clique (LB = {lb1}) = {clique}\n")
@@ -173,7 +172,7 @@ def branch_node(graph, node):
     coloring = graph.find_coloring(uf2, edges2)
     ub2 = len(set(coloring))
 
-    childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2, coloring))
+    childNodes.append(BranchAndBoundNode(uf2, edges2, lb2, ub2, coloring, node.depth+1))
 
     log.append(f"Node {node.id} branched by imposing vertices {u}, {v} have different colors\n")
     log.append(f"Branch 2 child node results: \n")

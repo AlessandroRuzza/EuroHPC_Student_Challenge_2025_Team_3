@@ -5,7 +5,7 @@ class BranchingStrategy(ABC):
     """
     Abstract base class for branching strategies
     """
-    def find_pair(self, graph, union_find, added_edges):
+    def find_pair(self, graph, union_find, added_edges, depth):
         """
         Finds a pair of non-adjacent vertices to branch on
 
@@ -18,11 +18,11 @@ class BranchingStrategy(ABC):
         :return: Tuple of non-adjacent vertices to branch on, or (None, None) if no such pair exists
         :rtype: tuple
         """
-        vertices = self.get_ordered_vertices(graph, union_find)
+        vertices = self.get_ordered_vertices(graph, union_find, depth)
         return self.select_pair(vertices, graph, union_find, added_edges)
 
     @abstractmethod
-    def get_ordered_vertices(self, graph, union_find):
+    def get_ordered_vertices(self, graph, union_find, depth):
         """
         Order the vertices of the graph according to the strategy
 
@@ -74,14 +74,14 @@ class SimpleBranchingStrategy(BranchingStrategy):
     """
     Simple strategy that uses natural ordering
     """
-    def get_ordered_vertices(self, graph, union_find):
+    def get_ordered_vertices(self, graph, union_find, depth):
         return list(range(len(graph)))
 
 class DegreeBranchingStrategy(BranchingStrategy):
     """
     Strategy that orders vertices by degree
     """
-    def get_ordered_vertices(self, graph, union_find):
+    def get_ordered_vertices(self, graph, union_find, depth):
         return sorted(range(len(graph)), 
                      key=lambda x: graph.degree(x), 
                      reverse=True)
@@ -90,7 +90,7 @@ class SaturationBranchingStrategy(BranchingStrategy):
     """
     Strategy that orders vertices by saturation degree
     """
-    def get_ordered_vertices(self, graph, union_find):
+    def get_ordered_vertices(self, graph, union_find, depth):
         def saturation(vertex):
             """
             Calculate the saturation degree of a vertex
@@ -108,3 +108,43 @@ class SaturationBranchingStrategy(BranchingStrategy):
         return sorted(range(len(graph)), 
                      key=lambda x: (saturation(x), graph.degree(x)), 
                      reverse=True)
+
+
+class HybridBranching(BranchingStrategy):
+    def __init__(self):
+        self.depth_thresholds = {"early": 5, "mid": 15}  # Define heuristic switching points
+        self.log = []  # Initialize a log list to store branching information
+
+    def get_ordered_vertices(self, graph, union_find, depth):
+        """Dynamically select the best branching heuristic based on search depth."""
+        
+        if depth < self.depth_thresholds["early"]:
+            # Early: Clique-based selection (hardest constraints first)
+            clique = graph.find_max_clique(union_find, set())
+            self.log.append(f"Early stage: Using clique-based selection at depth {depth}\n")
+            self.log.append(f"Max clique found: {clique}\n")
+            return sorted(clique, key=lambda x: graph.degree(x), reverse=True)
+
+        elif depth < self.depth_thresholds["mid"]:
+            # Mid: Conflict-driven selection (focus on high-conflict nodes)
+            self.log.append(f"Mid stage: Using conflict-driven selection at depth {depth}\n")
+            return sorted(
+                range(len(graph)),
+                key=lambda x: (graph.degree(x), self.saturation(graph, union_find, x)),
+                reverse=True
+            )
+
+        else:
+            # Late: DSATUR-guided selection (lowest available color saturation)
+            self.log.append(f"Late stage: Using DSATUR-guided selection at depth {depth}\n")
+            return sorted(
+                range(len(graph)),
+                key=lambda x: self.saturation(graph, union_find, x),
+                reverse=False  # Prefer nodes with lower saturation
+            )
+
+    def saturation(self, graph, union_find, node):
+        """Compute saturation: Number of unique colors among node’s neighbors."""
+        saturation_value = len({union_find.find(neigh) for neigh in graph.adj_list[node]})
+        self.log.append(f"Node {node} has saturation value: {saturation_value}\n")
+        return saturation_value
