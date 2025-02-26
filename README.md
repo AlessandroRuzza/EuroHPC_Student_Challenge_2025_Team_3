@@ -1,16 +1,32 @@
 # EuMaster4HPC Student Challenge 2025
 ## Chasing the Perfect Hue: A High-Performance Dive into Graph Coloring
 
-A parallel branch-and-bound solver for determining the chromatic number of a graph. Utilizes MPI for distributed computation and heuristic-based bounding strategies.
+A parallel branch-and-bound solver for determining the chromatic number of a graph. It utilizes MPI for distributed computation and heuristic-based bounding strategies.
+
+This project was developed for the EuroHPC Summit Student Challenge 2025, leveraging the computational power of the Slovenian supercomputer [VEGA](https://izum.si/en/vega-en/).
+
+
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Parallel Version](#parallel-version)
+  - [Sequential Version](#sequential-version)
+  - [Usage on Vega](#usage-on-vega)
+- [Documentation](#documentation)
+- [Results & Benchmarks](#results--benchmarks)
+- [References](#references)
+- [Acknowledgments](#acknowledgments)
+
 
 ## Features
-- **Branch-and-Bound Framework**: Efficiently explores the solution space with smart pruning and branching strategies.
+- **Branch-and-Bound Framework**: Efficiently explores the solution space with pruning and branching strategies.
 - **Heuristic Bounds**: 
-  - **Lower Bound**: Maximum clique estimation (e.g. Greedy, DLS).
-  - **Upper Bound**: Graph coloring heuristics (e.g. DSATUR, TabuSearch).
-- **MPI Parallelization**: Distributes computation across nodes/cores for scalability.
-- **Logging**: Detailed logs of bounds, branching decisions, and runtime metrics.
-- **Time Limit Handling**: Gracefully exits after a user-specified time (default: 10,000 seconds).
+  - **Lower Bound**: Maximum clique estimation using techniques ranging from basic greedy methods to advanced adaptive strategies like DLS.
+  - **Upper Bound**: Graph coloring heuristics, including DSATUR, TabuSearch, and BacktrackingDSatur.
+- **MPI Parallelization**: Distributes computation across nodes/cores for scalability, using a manager/worker pattern.
+- **Logging**: Tracks bounds, branching decisions, and runtime metrics for each node.
+
 
 ## Installation
 
@@ -33,20 +49,20 @@ A parallel branch-and-bound solver for determining the chromatic number of a gra
 
 ### Parallel Version
 
-To utilize the parallel solver, type the following commnad:
+To run the parallel solver, use:
    ```bash
 python mpirun -n NUM_NODES python MPI/mpi.py [OPTIONS] instance outFolderPath
    ```
-   Where the parameters are:
+   #### Arguments:
    - ```NUM_NODES```: The number of MPI nodes to utilize
    - ```instance```: The instance file of the graph (utilizing .col format)
 
-   - ```outFolderPath```: The folder in which to insert the results
+   - ```outFolderPath```: The folder to store the results
 
-It is possible to add some optional arguments, including:
+#### Optional Parameters:
 
-   - ```-h, -help```: Show a detailed help message about the program's usage
-   - ```--cpusPerTask CPUSPERTASK```: Number of threads to use for each worker, ignored for non-parallel heuristics
+   - ```-h, -help```: Show a help message
+   - ```--cpusPerTask CPUSPERTASK```: Number of threads to use for each worker (ignored for non-parallel heuristics)
    - ```--branch BRANCH```: select a specific branching strategy, default: SaturationBranchingStrategy
    - ```--color COLOR```: select a specific coloring heuristic to compute the upper bound, default: ParallelBacktrackingDSatur
    - ```--clique CLIQUE```: select a specific max clique heuristic to compute the lower bound, default: ParallelDLS
