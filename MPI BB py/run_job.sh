@@ -8,4 +8,4 @@
 module load mpi4py
 module load SciPy-bundle
 
-srun --output=$2/${1:0:-4}.stdout python mpi.py ../instances/$1
+srun --output=$2/${1:0:-4}.stdout python mpi.py ../instances/$1 $2 -p --cpusPerTask 16

@@ -149,10 +149,14 @@ def secondsAsStr(s):
     m = int(s/60)
     return f"{h}h{m}m{s:.3f}s"
 
-def output_results(instance_name, solver_name, solver_version, num_workers, num_cores, wall_time, time_limit, graph, coloring, maxCliqueSize):
+def output_results(instance_name, output_folder, solver_name, solver_version, num_workers, num_cores, wall_time, time_limit, graph, coloring, maxCliqueSize):
     """
     Output results of an instance to file.
 
+    :param instance_name: Instance file name
+    :type instance_name: str
+    :param output_folder: Folder in which to write the results
+    :type output_folder: str 
     :param solver_name: Solver description (heuristics used, parallelization library)
     :type solver_name: str
     :param solver_version: Solver version (vM.m.p)
@@ -174,7 +178,7 @@ def output_results(instance_name, solver_name, solver_version, num_workers, num_
     """
     # Get file name without path and extension
     instance_file = instance_name.split('/')[-1].split('.')[0]
-    output_file = f"../results/{instance_file}.output"
+    output_file = f"{output_folder}/output/{instance_file}.output"
     
     with open(output_file, 'w') as f:
         f.write(f"problem_instance_file_name: {instance_file}.col\n")
@@ -214,7 +218,7 @@ def load_heuristics(module_name):
 
     return heuristics
 
-def instantiate(heuristics, name, default):
+def instantiate(heuristics, name, default, args):
     """
     Instantiates the heuristics. If none are specified, it chooses the default one. Adds num_workers for parallel ones
 
@@ -224,6 +228,8 @@ def instantiate(heuristics, name, default):
     :type name: str
     :param default: default class to return if name is None
     :type param: obj
+    :param args: the args object
+    :type args: Namespace
     :return: instance of object
     :rtype: obj
     """
@@ -234,7 +240,7 @@ def instantiate(heuristics, name, default):
 
     selected = heuristics[name]
     if "parallel" in name.lower():
-        return selected(num_workers=5) # Change to cpusPerTask
+        return selected(num_workers=args.cpusPerTask)
     else:
         return selected()
 
@@ -262,15 +268,17 @@ TODO
 
 Example Usage:
 --------------
-TODO
+mpi.py ../instances/anna.col ../results/2h_test_output/ -p --cpusPerTask 16 --branch SaturationBranchingStrategy --color ParallelBacktrackingDSatur --clique ParallelDLS
 """
     )
 
     parser.add_argument("instance", type=str, help="Graph instance file (utilizing .col format)")
+    parser.add_argument("outFolderPath", type=str, help="Output folder of the execution")
 
     # Branch and Bound Framework selection
     parser.add_argument("-s", "--sequential", action="store_true", help="Run in sequential mode")
     parser.add_argument("-p", "--parallel", action="store_true", help="Run in parallel mode (default)")
+    parser.add_argument("--cpusPerTask", type=int, default=8, help="Number of threads to use for each worker, ignored for non-parallel heuristics")
 
     # Optional parameters
     branch_heuristics = load_heuristics("algorithms.branching_strategies")
@@ -294,11 +302,10 @@ TODO
         args.parallel = True  
 
     
-    args.branch = instantiate(branch_heuristics, args.branch, SaturationBranchingStrategy())
+    args.branch = instantiate(branch_heuristics, args.branch, SaturationBranchingStrategy(), args)
     
-    args.color = instantiate(color_heuristics, args.color, ParallelBacktrackingDSatur(num_workers=5)) # Change to cpusPerTask
+    args.color = instantiate(color_heuristics, args.color, ParallelBacktrackingDSatur(num_workers=args.cpusPerTask), args)
 
-    args.clique = instantiate(clique_heuristics, args.clique, ParallelDLS(num_workers=5)) # Change to cpusPerTask
+    args.clique = instantiate(clique_heuristics, args.clique, ParallelDLS(num_workers=args.cpusPerTask), args) 
 
     return args
-

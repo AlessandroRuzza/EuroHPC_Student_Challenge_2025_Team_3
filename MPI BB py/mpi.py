@@ -3,7 +3,7 @@ import time
 
 from threading import Thread, Condition, Event, Lock
 
-from os.path import isdir
+from os.path import isdir, isfile
 from os import mkdir
 
 import sys
@@ -40,8 +40,9 @@ debugQueue = False
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
+
+# Work sharing parameter
 nodesPerSlave = 5
-coresPerSlave = 32
 
 # Branch parameters
 worsenTolerance = 1
@@ -49,11 +50,21 @@ minQueueLenForPruning = size*2 * nodesPerSlave
 
 # Time parameters
 TIME_LIMIT = 10_000
-time_threshold = 100 # Time remaining before concluding slave computatations
+TIME_THRESHOLD = 100 # Time remaining before concluding slave computations
+
+# Args parsing
+args = get_args()
+if args.outFolderPath.endswith("/"):
+    args.outFolderPath = args.outFolderPath.rstrip("/")
+if not isdir(args.outFolderPath):
+    mkdir(args.outFolderPath)
 
 # Logging parameters
-outLogFolder = "../results/logs/"
-log = Log(outLogFolder + "log")
+outLogFolder = args.outFolderPath + "/logs"
+if not isdir(outLogFolder) and rank==0:
+    mkdir(outLogFolder)
+
+log = Log(outLogFolder + "/log")
 
 def printDebugSlave(str):
     """
@@ -443,8 +454,6 @@ def solve_instance_parallel(filename, time_limit):
     """
     start_time = time.time()
 
-    args = get_args()
-
     graph = parse_col_file(args.instance)
 
     # Set up heuristics
@@ -468,10 +477,11 @@ def solve_instance_parallel(filename, time_limit):
         
         output_results(
             instance_name=filename,
+            outputFolder=args.outFolderPath,
             solver_name=solverName,
             solver_version=solverVersion,
             num_workers=size,
-            num_cores=coresPerSlave,
+            num_cores=args.cpusPerTask,
             wall_time=wall_time,
             time_limit=time_limit,
             graph=graph,
@@ -488,23 +498,17 @@ def main():
     printMaster(f"MPI size = {size}")
 
     random.seed(10)
-
-    if len(sys.argv) < 2:
-        print("Usage: python seq.py <instance>")
-        sys.exit(1)
-        
-    instance = sys.argv[1]
     
-    outLogFile = f"{outLogFolder}{instance.split('/')[2]}.log"
-    log.filepath = outLogFile
-
-    if not isdir(outLogFolder) and rank==0:
-        mkdir(outLogFolder)
-
+    instance = args.instance
+    if not isfile(instance):
+        printMaster(f"Bad instance path parameter! {instance} is not a file")
+        sys.exit(1)
+    
+    log.filepath = f"{outLogFolder}/{instance.split('/')[2]}.log"
     
     printMaster(f"Starting at: {time.strftime('%H:%M:%S', time.localtime())}\n")
     
-    time_limit = TIME_LIMIT-time_threshold
+    time_limit = TIME_LIMIT-TIME_THRESHOLD
 
     printMaster(f"Solving {instance}...")
     chromatic_number, maxCliqueSize, best_coloring = solve_instance_parallel(instance, time_limit)
