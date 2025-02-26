@@ -190,7 +190,7 @@ def output_results(instance_name, output_folder, solver_name, solver_version, nu
         f.write(f"number_of_worker_processes: {num_workers}\n")
         f.write(f"number_of_cores_per_worker: {num_cores}\n")
         f.write(f"wall_time_sec: {wall_time}\n")
-        f.write(f"is_within_time_limit: {wall_time <= time_limit}\n")
+        f.write(f"is_within_time_limit: {wall_time < time_limit}\n")
 
         f.write(f"number_of_colors: {len(set(coloring))}\n")
         f.write(f"max_clique_size: {maxCliqueSize}\n")
