@@ -176,8 +176,8 @@ def output_results(instance_name, output_folder, solver_name, solver_version, nu
     :param maxCliqueSize: Best lower bound found
     :type maxCliqueSize: int
     """
-    # Get file name without path and extension
-    instance_file = instance_name.split('/')[-1].split('.')[0]
+    # Get file name without path
+    instance_file = instance_name.split('/')[-1][0:-4]
     output_file = f"{output_folder}/output/{instance_file}.output"
     
     with open(output_file, 'w') as f:
