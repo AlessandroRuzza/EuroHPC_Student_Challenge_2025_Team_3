@@ -51,14 +51,16 @@ def branch_and_bound(graph, time_limit=10000):
     initial_uf = UnionFind(n)
     initial_edges = set()
 
-    # Initial upper and lower bounds
-    lb = len(graph.find_max_clique(initial_uf, initial_edges))
-    ub = len(set(graph.find_coloring(initial_uf, initial_edges)))
+    # Find initial lower bound and upper bound
+    initial_clique = graph.find_max_clique(initial_uf, initial_edges)
+    lb = len(initial_clique)
+    initial_coloring = graph.find_coloring(initial_uf, initial_edges)
+    ub = len(set(initial_coloring))
 
     best_ub = ub
     best_lb = lb
     queue = []
-    heapq.heappush(queue, (ub, BranchAndBoundNode(initial_uf, initial_edges, lb, ub)))
+    heapq.heappush(queue, (ub, BranchAndBoundNode(initial_uf, initial_edges, lb, ub, initial_coloring)))
 
     current_ub, node = None, None
     current_lb = None
@@ -120,10 +122,14 @@ def branch_and_bound(graph, time_limit=10000):
             uf1.union(u, v)
             edges1 = deepcopy(node.added_edges)
 
-            lb1 = len(graph.find_max_clique(uf1, edges1))
-            ub1 = len(set(graph.find_coloring(uf1, edges1)))
+
+            clique = graph.find_max_clique(uf1, edges1)
+            lb1 = len(clique)
+            
+            coloring = graph.find_coloring(uf1, edges1)
+            ub1 = len(set(coloring))
             if lb1 < best_ub:
-                heapq.heappush(queue, (ub1, BranchAndBoundNode(uf1, edges1, lb1, ub1)))
+                heapq.heappush(queue, (ub1, BranchAndBoundNode(uf1, edges1, lb1, ub1, coloring)))
 
 
         # Branch 2: different color
@@ -133,11 +139,13 @@ def branch_and_bound(graph, time_limit=10000):
         rv = uf2.find(v)
         if (ru, rv) not in edges2 and (rv, ru) not in edges2:
             edges2.add((ru, rv))
-
-        lb2 = len(graph.find_max_clique(uf2, edges2))
-        ub2 = len(set(graph.find_coloring(uf2, edges2)))
+        
+        clique = graph.find_max_clique(uf2, edges2)
+        lb2 = len(clique)
+        coloring = graph.find_coloring(uf2, edges2)
+        ub2 = len(set(coloring))
         if lb2 < best_ub:
-            heapq.heappush(queue, (ub2, BranchAndBoundNode(uf2, edges2, lb2, ub2)))
+            heapq.heappush(queue, (ub2, BranchAndBoundNode(uf2, edges2, lb2, ub2, coloring)))
         
     bestColoring = graph.find_coloring(node.union_find, node.added_edges)
     return best_lb, best_ub, bestColoring, is_over_time_limit
@@ -179,15 +187,17 @@ def solve_instance(filename, timeLimit):
 
     # Output results
     output_results(
-        instance_name=filename,
-        solver_name=solver_name,
-        solver_version=solver_version,
-        num_workers=num_workers,
-        num_cores=num_cores,
-        wall_time=wall_time,
-        time_limit=timeLimit,
-        graph=graph,
-        coloring=bestColoring
+            instance_name=filename,
+            outputFolder=args.outFolderPath,
+            solver_name=solverName,
+            solver_version=solverVersion,
+            num_workers=size,
+            num_cores=args.cpusPerTask,
+            wall_time=wall_time,
+            time_limit=time_limit,
+            graph=graph,
+            coloring=best_coloring,
+            maxCliqueSize=maxCliqueSize
     )
     
     if best_lb == best_ub:
