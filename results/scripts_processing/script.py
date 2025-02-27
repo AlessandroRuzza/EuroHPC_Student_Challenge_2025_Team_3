@@ -79,8 +79,8 @@ instList = set(s.split(".")[0] for s in listdir(instance_root))
 solvedList = set(s.split("/")[-1].split(".")[0] for s in output_files)
 
 diff = instList - solvedList
-print(f"Missing: {diff}")
-final_lines.append(f"Missing: {diff}\n")
+print(f"Missing: {diff if diff else '[]'}")
+final_lines.append(f"Missing: {diff if diff else '[]'}\n")
 
 
 with open(result_table_file, "w") as table_out:
