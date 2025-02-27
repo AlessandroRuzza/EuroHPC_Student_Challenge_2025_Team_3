@@ -1,0 +1,11 @@
+MPI size = 8
+Starting at: 11:05:45
+
+Solving ../instances/homer.col...
+Starting (UB, LB) = (13, 13)
+Coloring time = 0m 1.353s
+Clique time = 0m 8.341s
+Chromatic number for ../instances/homer.col: 13
+Time: 0m 9s
+Is Valid? True
+

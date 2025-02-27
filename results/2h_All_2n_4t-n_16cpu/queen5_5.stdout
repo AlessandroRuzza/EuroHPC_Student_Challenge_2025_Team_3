@@ -1,0 +1,11 @@
+MPI size = 8
+Starting at: 12:07:59
+
+Solving ../instances/queen5_5.col...
+Starting (UB, LB) = (5, 5)
+Coloring time = 0m 1.782s
+Clique time = 0m 0.331s
+Chromatic number for ../instances/queen5_5.col: 5
+Time: 0m 2s
+Is Valid? True
+

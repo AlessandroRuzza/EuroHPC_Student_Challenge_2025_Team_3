@@ -1,0 +1,11 @@
+MPI size = 8
+Starting at: 11:05:46
+
+Solving ../instances/inithx.i.3.col...
+Starting (UB, LB) = (31, 31)
+Coloring time = 0m 1.120s
+Clique time = 0m 44.989s
+Chromatic number for ../instances/inithx.i.3.col: 31
+Time: 0m 46s
+Is Valid? True
+

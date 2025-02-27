@@ -1,0 +1,14 @@
+MPI size = 8
+Starting at: 12:06:07
+
+Solving ../instances/le450_5b.col...
+Starting (UB, LB) = (9, 5)
+Coloring time = 0m 1.746s
+Clique time = 0m 5.926s
+Worker 2 improved UB = 6 Time = 4m 47.958s
+Chromatic number for ../instances/le450_5b.col: 6
+MaxClique found = 5
+Time: 165m 6s
+Is Valid? True
+TIMED OUT.
+

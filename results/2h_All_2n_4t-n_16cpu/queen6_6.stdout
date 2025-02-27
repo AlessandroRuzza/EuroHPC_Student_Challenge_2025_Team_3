@@ -1,0 +1,14 @@
+MPI size = 8
+Starting at: 12:08:00
+
+Solving ../instances/queen6_6.col...
+Starting (UB, LB) = (8, 6)
+Coloring time = 0m 0.946s
+Clique time = 0m 0.408s
+Worker 1 improved UB = 7 Time = 0m 26.534s
+Chromatic number for ../instances/queen6_6.col: 7
+MaxClique found = 6
+Time: 165m 0s
+Is Valid? True
+TIMED OUT.
+
