@@ -73,14 +73,14 @@ for output in output_files:
 
 finalResult = f"Optimal instances solved: {optimal_count}/{instanceCount}  (total number of instances = {len(listdir(instance_root))})"
 print(finalResult)
-final_lines.append(finalResult)
+final_lines.append("\n" + finalResult + "\n")
 
 instList = set(s.split(".")[0] for s in listdir(instance_root))
 solvedList = set(s.split("/")[-1].split(".")[0] for s in output_files)
 
 diff = instList - solvedList
 print(f"Missing: {diff}")
-final_lines.append(f"Missing: {diff}")
+final_lines.append(f"Missing: {diff}\n")
 
 
 with open(result_table_file, "w") as table_out:

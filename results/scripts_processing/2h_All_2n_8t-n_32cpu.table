@@ -27,4 +27,6 @@
   queen9_9.col  ;   81 ,  2112 ; ( 11,  9 ) ;  Unknown  ;  9909 sec ;   16  ,   32 
   school1.col   ;  385 , 38190 ; ( 15,  14) ;  Unknown  ;  9966 sec ;   16  ,   32 
  zeroin.i.1.col ;  211 ,  8200 ; ( 49,  49) ;    Yes    ;   34  sec ;   16  ,   32 
-Optimal instances solved: 14/28  (total number of instances = 30)Missing: {'myciel3', 'anna'}
+
+Optimal instances solved: 14/28  (total number of instances = 30)
+Missing: {'anna', 'myciel3'}

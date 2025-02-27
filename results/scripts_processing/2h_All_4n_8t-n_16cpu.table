@@ -25,4 +25,6 @@
   queen9_9.col  ;   81 ,  2112 ; ( 11,  9 ) ;  Unknown  ;  9903 sec ;   32  ,   16 
   school1.col   ;  385 , 38190 ; ( 14,  14) ;    Yes    ;   19  sec ;   32  ,   16 
  zeroin.i.1.col ;  211 ,  8200 ; ( 49,  49) ;    Yes    ;   17  sec ;   32  ,   16 
-Optimal instances solved: 14/26  (total number of instances = 30)Missing: {'fpsol2', 'myciel3', 'queen10_10', 'anna'}
+
+Optimal instances solved: 14/26  (total number of instances = 30)
+Missing: {'queen10_10', 'myciel3', 'fpsol2', 'anna'}

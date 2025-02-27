@@ -27,4 +27,6 @@
   queen9_9.col  ;   81 ,  2112 ; ( 10,  9 ) ;  Unknown  ;  9902 sec ;   16  ,   16 
   school1.col   ;  385 , 38190 ; ( 15,  14) ;  Unknown  ;  9942 sec ;   16  ,   16 
  zeroin.i.1.col ;  211 ,  8200 ; ( 49,  49) ;    Yes    ;   16  sec ;   16  ,   16 
-Optimal instances solved: 15/28  (total number of instances = 30)Missing: {'queen15_15', 'myciel3'}
+
+Optimal instances solved: 15/28  (total number of instances = 30)
+Missing: {'queen15_15', 'myciel3'}
