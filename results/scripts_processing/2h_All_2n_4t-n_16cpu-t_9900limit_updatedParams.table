@@ -28,3 +28,4 @@
   queen9_9.col  ;   81 ,  2112 ; ( 11,  9 ) ;  Unknown  ;  9907 sec ;   8   ,   16 
   school1.col   ;  385 , 38190 ; ( 15,  14) ;  Unknown  ;  9938 sec ;   8   ,   16 
    zeroin.col   ;  211 ,  8200 ; ( 49,  49) ;    Yes    ;   20  sec ;   8   ,   16 
+Optimal instances solved: 15/29  (total number of instances = 30)Missing: {'myciel3'}

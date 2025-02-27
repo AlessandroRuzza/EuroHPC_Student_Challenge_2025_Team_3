@@ -56,9 +56,9 @@ TIME_THRESHOLD = 100 # Time remaining before concluding worker computations
 args = get_args()
 if args.outFolderPath.endswith("/"):
     args.outFolderPath = args.outFolderPath.rstrip("/")
-if not isdir(args.outFolderPath):
+if not isdir(args.outFolderPath) and rank==0:
     mkdir(args.outFolderPath)
-if not isdir(args.outFolderPath + "/output"):
+if not isdir(args.outFolderPath + "/output") and rank==0:
     mkdir(args.outFolderPath + "/output")
 
 # Logging parameters
@@ -365,6 +365,7 @@ def manager_branch_and_bound(graph: Graph, queue: list[BranchAndBoundNode],
 
     # Before exiting, check all the generated nodes for improvements
     if timeoutEvent.is_set() and queue:
+        # if len(queue) > 2e7: del queue[2e7:]
         best_lb[0] = max(best_lb[0], max(queue, key=lambda n: n.lb).lb)
         best_ub[0] = min(best_ub[0], min(queue, key=lambda n: n.ub).ub)
     

@@ -1,0 +1,30 @@
+   instance1    ; nodes, edges ; ( UB,  LB) ; isOptimum ; wall_time ; nTasks, cpusPerTask
+    anna.col    ;  138 ,  986  ; ( 11,  11) ;    Yes    ;   2   sec ;   16  ,   16 
+   david.col    ;   87 ,  812  ; ( 11,  11) ;    Yes    ;   3   sec ;   16  ,   16 
+ fpsol2.i.1.col ;  496 , 23308 ; ( 65,  65) ;    Yes    ;   50  sec ;   16  ,   16 
+  games120.col  ;  120 ,  1276 ; ( 9 ,  9 ) ;    Yes    ;   3   sec ;   16  ,   16 
+   homer.col    ;  561 ,  3256 ; ( 13,  13) ;    Yes    ;   10  sec ;   16  ,   16 
+    huck.col    ;   74 ,  602  ; ( 11,  11) ;    Yes    ;   2   sec ;   16  ,   16 
+ inithx.i.3.col ;  621 , 27938 ; ( 31,  31) ;    Yes    ;   38  sec ;   16  ,   16 
+    jean.col    ;   80 ,  508  ; ( 10,  10) ;    Yes    ;   2   sec ;   16  ,   16 
+  le450_5b.col  ;  450 , 11468 ; ( 8 ,  5 ) ;  Unknown  ;  9915 sec ;   16  ,   16 
+ miles1500.col  ;  128 , 10396 ; ( 73,  73) ;    Yes    ;   23  sec ;   16  ,   16 
+  miles250.col  ;  128 ,  774  ; ( 8 ,  8 ) ;    Yes    ;   4   sec ;   16  ,   16 
+ mulsol.i.1.col ;  197 ,  7850 ; ( 49,  49) ;    Yes    ;   15  sec ;   16  ,   16 
+  myciel4.col   ;   23 ,  142  ; ( 5 ,  2 ) ;  Unknown  ;  9901 sec ;   16  ,   16 
+  myciel5.col   ;   47 ,  472  ; ( 6 ,  2 ) ;  Unknown  ;  9905 sec ;   16  ,   16 
+  myciel7.col   ;  191 ,  4720 ; ( 8 ,  2 ) ;  Unknown  ;  9906 sec ;   16  ,   16 
+ queen10_10.col ;  100 ,  2940 ; ( 12,  10) ;  Unknown  ;  9905 sec ;   16  ,   16 
+ queen11_11.col ;  121 ,  3960 ; ( 13,  11) ;  Unknown  ;  9904 sec ;   16  ,   16 
+ queen12_12.col ;  144 ,  5192 ; ( 14,  12) ;  Unknown  ;  9906 sec ;   16  ,   16 
+ queen13_13.col ;  169 ,  6656 ; ( 16,  13) ;  Unknown  ;  9903 sec ;   16  ,   16 
+ queen14_14.col ;  196 ,  8372 ; ( 17,  14) ;  Unknown  ;  9904 sec ;   16  ,   16 
+  queen5_5.col  ;   25 ,  320  ; ( 5 ,  5 ) ;    Yes    ;   2   sec ;   16  ,   16 
+  queen6_6.col  ;   36 ,  580  ; ( 7 ,  6 ) ;  Unknown  ;  9900 sec ;   16  ,   16 
+  queen7_7.col  ;   49 ,  952  ; ( 7 ,  7 ) ;    Yes    ;   10  sec ;   16  ,   16 
+ queen8_12.col  ;   96 ,  2736 ; ( 12,  12) ;    Yes    ;   50  sec ;   16  ,   16 
+  queen8_8.col  ;   64 ,  1456 ; ( 10,  8 ) ;  Unknown  ;  9906 sec ;   16  ,   16 
+  queen9_9.col  ;   81 ,  2112 ; ( 10,  9 ) ;  Unknown  ;  9902 sec ;   16  ,   16 
+  school1.col   ;  385 , 38190 ; ( 15,  14) ;  Unknown  ;  9942 sec ;   16  ,   16 
+ zeroin.i.1.col ;  211 ,  8200 ; ( 49,  49) ;    Yes    ;   16  sec ;   16  ,   16 
+Optimal instances solved: 15/28  (total number of instances = 30)Missing: {'queen15_15', 'myciel3'}

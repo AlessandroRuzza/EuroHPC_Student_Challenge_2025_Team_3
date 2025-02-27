@@ -22,9 +22,10 @@ max_clique_size: 65
 """
 if len(sys.argv) < 2:
     print("Usage: py script.py <folder containing *.output files>")
-    print("Example: py script.py ../results/folder/output/")
+    print("Example: py script.py ../folder/output/")
+    quit(1)
 results_root = sys.argv[1]
-result_table_file = f"./{results_root.split("/")[-2]}.table"
+result_table_file = f"./{results_root.split('/')[1]}.table"
 instance_root = "../../instances/"
 
 output_files = listdir(results_root)
@@ -69,15 +70,18 @@ for output in output_files:
         ...
         """
 
-with open(result_table_file, "w") as table_out:
-    table_out.writelines(final_lines)
 
-print(f"Optimal instances solved: {optimal_count}/{instanceCount}  (total number of instances = {len(listdir(instance_root))})")
-print("Missing: ")
+finalResult = f"Optimal instances solved: {optimal_count}/{instanceCount}  (total number of instances = {len(listdir(instance_root))})"
+print(finalResult)
+final_lines.append(finalResult)
 
 instList = set(s.split(".")[0] for s in listdir(instance_root))
 solvedList = set(s.split("/")[-1].split(".")[0] for s in output_files)
 
 diff = instList - solvedList
-print(diff)
+print(f"Missing: {diff}")
+final_lines.append(f"Missing: {diff}")
 
+
+with open(result_table_file, "w") as table_out:
+    table_out.writelines(final_lines)
