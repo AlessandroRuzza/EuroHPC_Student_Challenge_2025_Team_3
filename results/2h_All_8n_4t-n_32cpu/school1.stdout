@@ -1,0 +1,17 @@
+MPI size = 32
+Starting at: 12:30:56
+
+Solving ../instances/school1.col...
+Starting (UB, LB) = (26, 14)
+Coloring time = 0m 1.068s
+Clique time = 0m 36.575s
+Worker 1 improved UB = 24 Time = 1m 49.994s
+Worker 1 improved UB = 21 Time = 4m 18.063s
+Worker 1 improved UB = 20 Time = 9m 14.201s
+Worker 19 improved UB = 19 Time = 12m 59.915s
+Worker 25 improved UB = 15 Time = 0m 37.647s
+Worker 12 improved UB = 14 Time = 29m 4.127s
+Chromatic number for ../instances/school1.col: 14
+Time: 33m 6s
+Is Valid? True
+

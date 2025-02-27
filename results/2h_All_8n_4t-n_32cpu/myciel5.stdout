@@ -1,0 +1,14 @@
+MPI size = 32
+Starting at: 12:24:17
+
+Solving ../instances/myciel5.col...
+Starting (UB, LB) = (6, 2)
+Coloring time = 0m 2.994s
+Clique time = 0m 1.365s
+Chromatic number for ../instances/myciel5.col: 6
+MaxClique found = 2
+Time: 165m 8s
+Is Valid? True
+TIMED OUT.
+
+slurmstepd: error: *** STEP 53269252.0 ON cn0535 CANCELLED AT 2025-02-27T15:11:19 DUE TO TIME LIMIT ***

@@ -1,0 +1,14 @@
+MPI size = 32
+Starting at: 12:24:24
+
+Solving ../instances/queen10_10.col...
+Starting (UB, LB) = (12, 10)
+Coloring time = 0m 1.475s
+Clique time = 0m 2.440s
+Chromatic number for ../instances/queen10_10.col: 12
+MaxClique found = 10
+Time: 165m 8s
+Is Valid? True
+TIMED OUT.
+
+slurmstepd: error: *** STEP 53269254.0 ON cn0446 CANCELLED AT 2025-02-27T15:11:50 DUE TO TIME LIMIT ***

@@ -1,0 +1,15 @@
+MPI size = 32
+Starting at: 12:28:13
+
+Solving ../instances/queen8_8.col...
+Starting (UB, LB) = (10, 8)
+Coloring time = 0m 1.766s
+Clique time = 0m 1.353s
+Worker 30 improved UB = 9 Time = 3m 42.546s
+Chromatic number for ../instances/queen8_8.col: 9
+MaxClique found = 8
+Time: 165m 3s
+Is Valid? True
+TIMED OUT.
+
+slurmstepd: error: *** STEP 53269264.0 ON cn0421 CANCELLED AT 2025-02-27T15:15:22 DUE TO TIME LIMIT ***

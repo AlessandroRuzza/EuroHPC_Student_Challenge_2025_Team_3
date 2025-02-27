@@ -1,0 +1,11 @@
+MPI size = 32
+Starting at: 12:17:15
+
+Solving ../instances/david.col...
+Starting (UB, LB) = (11, 11)
+Coloring time = 0m 1.521s
+Clique time = 0m 3.164s
+Chromatic number for ../instances/david.col: 11
+Time: 0m 4s
+Is Valid? True
+

@@ -1,0 +1,11 @@
+MPI size = 32
+Starting at: 12:15:43
+
+Solving ../instances/anna.col...
+Starting (UB, LB) = (11, 11)
+Coloring time = 0m 1.703s
+Clique time = 0m 4.591s
+Chromatic number for ../instances/anna.col: 11
+Time: 0m 6s
+Is Valid? True
+

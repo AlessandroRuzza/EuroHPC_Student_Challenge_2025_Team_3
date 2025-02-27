@@ -1,0 +1,17 @@
+MPI size = 32
+Starting at: 12:22:57
+
+Solving ../instances/le450_5b.col...
+Starting (UB, LB) = (11, 5)
+Coloring time = 0m 1.567s
+Clique time = 0m 11.930s
+Worker 1 improved UB = 9 Time = 0m 40.024s
+Worker 24 improved UB = 8 Time = 12m 30.944s
+Worker 6 improved UB = 6 Time = 39m 16.827s
+Chromatic number for ../instances/le450_5b.col: 6
+MaxClique found = 5
+Time: 165m 25s
+Is Valid? True
+TIMED OUT.
+
+slurmstepd: error: *** STEP 53269246.0 ON cn0095 CANCELLED AT 2025-02-27T15:10:18 DUE TO TIME LIMIT ***

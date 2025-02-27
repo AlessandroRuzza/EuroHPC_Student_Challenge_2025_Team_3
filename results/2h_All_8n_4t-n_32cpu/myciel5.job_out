@@ -1,0 +1,2 @@
+slurmstepd: error: *** JOB 53269252 ON cn0535 CANCELLED AT 2025-02-27T15:11:19 DUE TO TIME LIMIT ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.

@@ -1,0 +1,13 @@
+MPI size = 8
+Starting at: 12:24:36
+
+Solving ../instances/myciel3.col...
+Starting (UB, LB) = (4, 2)
+Coloring time = 0m 1.247s
+Clique time = 0m 0.251s
+Chromatic number for ../instances/myciel3.col: 4
+MaxClique found = 2
+Time: 165m 52s
+Is Valid? True
+TIMED OUT.
+
