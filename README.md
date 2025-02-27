@@ -19,6 +19,7 @@ This project was developed for the EuroHPC Summit Student Challenge 2025, levera
       - [Output:](#output)
     - [Sequential Version](#sequential-version)
   - [Usage on Vega](#usage-on-vega)
+    - [Output](#output-1)
   - [Documentation](#documentation)
   - [Results \& Benchmarks](#results--benchmarks)
   - [References](#references)
@@ -45,7 +46,7 @@ See ```INSTALL.md```
 To run the parallel solver, use:
    ```bash
    cd code
-python mpirun -n NUM_NODES python MPI/mpi.py [OPTIONS] instance outFolderPath
+   mpirun -n NUM_NODES python MPI/mpi.py [OPTIONS] instance outFolderPath
    ```
    Where the parameters are:
    - ```NUM_NODES```: The number of MPI nodes to utilize (**minimum of 2**)
@@ -55,22 +56,24 @@ python mpirun -n NUM_NODES python MPI/mpi.py [OPTIONS] instance outFolderPath
 
 #### Optional Parameters:
 
-   - ```-h, -help```: Show a help message
-   - ```--cpusPerTask CPUSPERTASK```: Number of threads to use for each worker (ignored for non-parallel heuristics)
+   - ```-h, -help```: Show a help message containing all possible options and heuristic choices
+   - ```--cpusPerTask CPUSPERTASK```: Number of threads to use for each worker (ignored for non-parallel heuristics), default: 8
    - ```--branch BRANCH```: select a specific branching strategy, default: SaturationBranchingStrategy
    - ```--color COLOR```: select a specific coloring heuristic to compute the upper bound, default: ParallelBacktrackingDSatur
    - ```--clique CLIQUE```: select a specific max clique heuristic to compute the lower bound, default: ParallelDLS
 
 #### Example of usage:
 ```bash
-python mpirun -n 4 MPI/mpi.py ../instances/anna.col ../results/2h_test_output/ --cpusPerTask 16 --branch SaturationBranchingStrategy --color ParallelBacktrackingDSatur --clique ParallelDLS
+mpirun -n 4 MPI/mpi.py ../instances/anna.col ../results/my_test_run/ --cpusPerTask 16 --branch SaturationBranchingStrategy --color ParallelBacktrackingDSatur --clique ParallelDLS
  ```
 
 #### Output:
 The results will be displayed inside the specified ```outFolderPath``` folder, where there are:
 
-- ```log```:
-- ```file.output```: 
+- ```logs```: folder containing ```instance.log``` file 
+- ```output```: folder containing ```instance.output``` file
+
+This folder structure allows a neat file organization when running multiple instances targeting the same ```outFolderPath``` 
 
 ### Sequential Version
 
@@ -102,6 +105,11 @@ Then, to run on Vega you have three options:
   - The shell will launch a batch job (using ```run_job.sh```) for each instance in the ```../instances/``` folder.
   - The output of each job will be collected in the output folder passed as argument (```outFolderPath```)
 
+### Output
+
+When using our shells (either ```run_job.sh``` or ```launch_all_instances.sh```), the ```outFolderPath``` will also contain files ```instance.stdout``` containing the console output of the job.
+
+```launch_all_instances.sh``` also generates ```instance.job_out``` files containing the batch job output for each instance 
 
 ## Documentation
 
