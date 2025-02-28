@@ -1,0 +1,5 @@
+<map id="branching_strategies.DegreeBranchingStrategy" name="branching_strategies.DegreeBranchingStrategy">
+<area shape="rect" id="node1" title="Strategy that orders vertices by degree." alt="" coords="14,169,223,211"/>
+<area shape="rect" id="node2" href="$classbranching__strategies_1_1BranchingStrategy.html" title="Abstract base class for branching strategies." alt="" coords="5,80,232,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="94,5,143,32"/>
+</map>

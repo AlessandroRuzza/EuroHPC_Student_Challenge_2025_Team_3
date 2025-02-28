@@ -113,12 +113,12 @@ When using our shells (either ```run_job.sh``` or ```launch_all_instances.sh```)
 
 ## Documentation
 
-For a detailed view of the documentation, open the ```docs/index.html``` file in the local browser. <br>
+For a detailed view of the documentation, open the ```docs.html``` file in the local browser. <br>
 The documentation was generated using Doxygen.
 
 ## Results & Benchmarks
 
-TODO
+Results are detailed in the report pdf.
 
 ## References
 
@@ -126,6 +126,8 @@ TODO
 - Qinghua Wu. The maximum clique problems with applications to graph coloring.
 
 ## Acknowledgments
+
+- EuroHPC Joint Undertaking
 
 - Supervisor: Janez Povh: <janez.povh@rudolfovo.eu>
 

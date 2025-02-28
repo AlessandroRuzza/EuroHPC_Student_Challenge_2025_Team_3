@@ -1,0 +1,23 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" title=" " alt="" coords="5,333,55,359"/>
+<area shape="rect" id="node2" href="$classbranching__strategies_1_1BranchingStrategy.html" title="Abstract base class for branching strategies." alt="" coords="103,136,329,177"/>
+<area shape="rect" id="node7" href="$classcoloring__heuristics_1_1ColoringHeuristic.html" title="Abstract base class for coloring heuristics." alt="" coords="115,325,317,367"/>
+<area shape="rect" id="node14" href="$classmaxclique__heuristics_1_1MaxCliqueHeuristic.html" title="Abstract base class for maximum clique heuristics." alt="" coords="120,504,312,545"/>
+<area shape="rect" id="node3" href="$classbranching__strategies_1_1DegreeBranchingStrategy.html" title="Strategy that orders vertices by degree." alt="" coords="389,5,599,47"/>
+<area shape="rect" id="node4" href="$classbranching__strategies_1_1HybridBranching.html" title=" " alt="" coords="391,71,597,112"/>
+<area shape="rect" id="node5" href="$classbranching__strategies_1_1SaturationBranchingStrategy.html" title="Strategy that orders vertices by saturation degree." alt="" coords="379,136,609,177"/>
+<area shape="rect" id="node6" href="$classbranching__strategies_1_1SimpleBranchingStrategy.html" title="Simple strategy that uses natural ordering." alt="" coords="391,201,597,243"/>
+<area shape="rect" id="node8" href="$classcoloring__heuristics_1_1BacktrackingDSatur.html" title="Backtracking DSatur coloring algorithm." alt="" coords="377,267,611,308"/>
+<area shape="rect" id="node10" href="$classcoloring__heuristics_1_1DSatur.html" title="DSatur coloring heuristic." alt="" coords="398,333,590,359"/>
+<area shape="rect" id="node11" href="$classcoloring__heuristics_1_1TabuSearch.html" title="Base Tabu Search heuristic for graph coloring." alt="" coords="405,384,583,425"/>
+<area shape="rect" id="node9" href="$classcoloring__heuristics_1_1ParallelBacktrackingDSatur.html" title="Parallel version of Backtracking DSatur that runs multiple instances on different threads." alt="" coords="689,267,885,308"/>
+<area shape="rect" id="node12" href="$classcoloring__heuristics_1_1SoftMaxTabuSearch.html" title="Tabu Search heuristic for graph coloring with a SoftMax&#45;like selection strategy." alt="" coords="700,357,873,399"/>
+<area shape="rect" id="node13" href="$classcoloring__heuristics_1_1ParallelTabuSearch.html" title="Parallel version of (SoftMax) Tabu Search that runs multiple instances on different threads." alt="" coords="963,357,1159,399"/>
+<area shape="rect" id="node15" href="$classmaxclique__heuristics_1_1DLS.html" title="Normal DLS implementation." alt="" coords="399,482,589,509"/>
+<area shape="rect" id="node20" href="$classmaxclique__heuristics_1_1GreedyCliqueFinder.html" title="First implementation ofGreedy algorithm to find the maximum clique in a graph." alt="" coords="389,533,599,575"/>
+<area shape="rect" id="node21" href="$classmaxclique__heuristics_1_1HeuristicCliqueFinder.html" title="Implementation of Greedy algorithm using union&#45;find data structure to find the maximum clique in a gr..." alt="" coords="383,599,605,640"/>
+<area shape="rect" id="node16" href="$classmaxclique__heuristics_1_1DLSAdaptive.html" title="Adaptive DLS implementation that switches between basic and color&#45;aware strategies based on the state..." alt="" coords="663,423,911,450"/>
+<area shape="rect" id="node17" href="$classmaxclique__heuristics_1_1DLSIncreasingPenalty.html" title="DLS implementation with increasing penalty delay After increase_interval steps without improvement,..." alt="" coords="659,475,915,516"/>
+<area shape="rect" id="node18" href="$classmaxclique__heuristics_1_1DLSwithColors.html" title="Dynamic Local Search (DLS) implementation that uses information about colors of vertices for finding ..." alt="" coords="678,540,895,581"/>
+<area shape="rect" id="node19" href="$classmaxclique__heuristics_1_1ParallelDLS.html" title="Parallel DLS implementation using multiprocessing to run multiple DLS solvers with different paramete..." alt="" coords="668,606,905,633"/>
+</map>

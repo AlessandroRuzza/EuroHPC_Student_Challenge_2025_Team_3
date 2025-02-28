@@ -1,0 +1,6 @@
+<map id="maxclique_heuristics.ParallelDLS" name="maxclique_heuristics.ParallelDLS">
+<area shape="rect" id="node1" title="Parallel DLS implementation using multiprocessing to run multiple DLS solvers with different paramete..." alt="" coords="5,244,243,271"/>
+<area shape="rect" id="node2" href="$classmaxclique__heuristics_1_1DLS.html" title="Normal DLS implementation." alt="" coords="29,169,219,196"/>
+<area shape="rect" id="node3" href="$classmaxclique__heuristics_1_1MaxCliqueHeuristic.html" title="Abstract base class for maximum clique heuristics." alt="" coords="28,80,220,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="99,5,149,32"/>
+</map>

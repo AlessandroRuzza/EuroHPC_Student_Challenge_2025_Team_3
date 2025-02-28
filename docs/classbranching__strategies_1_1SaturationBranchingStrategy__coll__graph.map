@@ -1,0 +1,5 @@
+<map id="branching_strategies.SaturationBranchingStrategy" name="branching_strategies.SaturationBranchingStrategy">
+<area shape="rect" id="node1" title="Strategy that orders vertices by saturation degree." alt="" coords="5,169,235,211"/>
+<area shape="rect" id="node2" href="$classbranching__strategies_1_1BranchingStrategy.html" title="Abstract base class for branching strategies." alt="" coords="7,80,233,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="95,5,145,32"/>
+</map>

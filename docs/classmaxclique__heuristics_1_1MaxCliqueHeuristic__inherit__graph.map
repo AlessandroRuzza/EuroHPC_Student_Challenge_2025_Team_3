@@ -1,0 +1,11 @@
+<map id="maxclique_heuristics.MaxCliqueHeuristic" name="maxclique_heuristics.MaxCliqueHeuristic">
+<area shape="rect" id="node1" title="Abstract base class for maximum clique heuristics." alt="" coords="103,147,295,189"/>
+<area shape="rect" id="node3" href="$classmaxclique__heuristics_1_1DLS.html" title="Normal DLS implementation." alt="" coords="359,96,549,123"/>
+<area shape="rect" id="node8" href="$classmaxclique__heuristics_1_1GreedyCliqueFinder.html" title="First implementation ofGreedy algorithm to find the maximum clique in a graph." alt="" coords="349,147,559,189"/>
+<area shape="rect" id="node9" href="$classmaxclique__heuristics_1_1HeuristicCliqueFinder.html" title="Implementation of Greedy algorithm using union&#45;find data structure to find the maximum clique in a gr..." alt="" coords="343,213,565,254"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,155,55,181"/>
+<area shape="rect" id="node4" href="$classmaxclique__heuristics_1_1DLSAdaptive.html" title="Adaptive DLS implementation that switches between basic and color&#45;aware strategies based on the state..." alt="" coords="617,5,865,32"/>
+<area shape="rect" id="node5" href="$classmaxclique__heuristics_1_1DLSIncreasingPenalty.html" title="DLS implementation with increasing penalty delay After increase_interval steps without improvement,..." alt="" coords="613,57,869,98"/>
+<area shape="rect" id="node6" href="$classmaxclique__heuristics_1_1DLSwithColors.html" title="Dynamic Local Search (DLS) implementation that uses information about colors of vertices for finding ..." alt="" coords="633,122,850,163"/>
+<area shape="rect" id="node7" href="$classmaxclique__heuristics_1_1ParallelDLS.html" title="Parallel DLS implementation using multiprocessing to run multiple DLS solvers with different paramete..." alt="" coords="623,188,860,215"/>
+</map>

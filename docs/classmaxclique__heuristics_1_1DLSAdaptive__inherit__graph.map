@@ -1,0 +1,6 @@
+<map id="maxclique_heuristics.DLSAdaptive" name="maxclique_heuristics.DLSAdaptive">
+<area shape="rect" id="node1" title="Adaptive DLS implementation that switches between basic and color&#45;aware strategies based on the state..." alt="" coords="5,244,253,271"/>
+<area shape="rect" id="node2" href="$classmaxclique__heuristics_1_1DLS.html" title="Normal DLS implementation." alt="" coords="35,169,224,196"/>
+<area shape="rect" id="node3" href="$classmaxclique__heuristics_1_1MaxCliqueHeuristic.html" title="Abstract base class for maximum clique heuristics." alt="" coords="33,80,225,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="105,5,154,32"/>
+</map>

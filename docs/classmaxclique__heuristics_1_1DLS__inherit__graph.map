@@ -1,0 +1,9 @@
+<map id="maxclique_heuristics.DLS" name="maxclique_heuristics.DLS">
+<area shape="rect" id="node1" title="Normal DLS implementation." alt="" coords="343,97,532,124"/>
+<area shape="rect" id="node4" href="$classmaxclique__heuristics_1_1DLSAdaptive.html" title="Adaptive DLS implementation that switches between basic and color&#45;aware strategies based on the state..." alt="" coords="584,5,832,32"/>
+<area shape="rect" id="node5" href="$classmaxclique__heuristics_1_1DLSIncreasingPenalty.html" title="DLS implementation with increasing penalty delay After increase_interval steps without improvement,..." alt="" coords="580,57,836,98"/>
+<area shape="rect" id="node6" href="$classmaxclique__heuristics_1_1DLSwithColors.html" title="Dynamic Local Search (DLS) implementation that uses information about colors of vertices for finding ..." alt="" coords="599,122,817,163"/>
+<area shape="rect" id="node7" href="$classmaxclique__heuristics_1_1ParallelDLS.html" title="Parallel DLS implementation using multiprocessing to run multiple DLS solvers with different paramete..." alt="" coords="589,188,827,215"/>
+<area shape="rect" id="node2" href="$classmaxclique__heuristics_1_1MaxCliqueHeuristic.html" title="Abstract base class for maximum clique heuristics." alt="" coords="103,90,295,131"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,97,55,124"/>
+</map>

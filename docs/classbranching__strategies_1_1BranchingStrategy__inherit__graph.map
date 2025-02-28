@@ -1,0 +1,8 @@
+<map id="branching_strategies.BranchingStrategy" name="branching_strategies.BranchingStrategy">
+<area shape="rect" id="node1" title="Abstract base class for branching strategies." alt="" coords="103,104,329,145"/>
+<area shape="rect" id="node3" href="$classbranching__strategies_1_1DegreeBranchingStrategy.html" title="Strategy that orders vertices by degree." alt="" coords="387,5,597,47"/>
+<area shape="rect" id="node4" href="$classbranching__strategies_1_1HybridBranching.html" title=" " alt="" coords="389,71,595,112"/>
+<area shape="rect" id="node5" href="$classbranching__strategies_1_1SaturationBranchingStrategy.html" title="Strategy that orders vertices by saturation degree." alt="" coords="377,136,607,177"/>
+<area shape="rect" id="node6" href="$classbranching__strategies_1_1SimpleBranchingStrategy.html" title="Simple strategy that uses natural ordering." alt="" coords="389,201,595,243"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,111,55,138"/>
+</map>

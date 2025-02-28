@@ -1,0 +1,6 @@
+<map id="maxclique_heuristics.DLSIncreasingPenalty" name="maxclique_heuristics.DLSIncreasingPenalty">
+<area shape="rect" id="node1" title="DLS implementation with increasing penalty delay After increase_interval steps without improvement,..." alt="" coords="5,244,261,285"/>
+<area shape="rect" id="node2" href="$classmaxclique__heuristics_1_1DLS.html" title="Normal DLS implementation." alt="" coords="39,169,228,196"/>
+<area shape="rect" id="node3" href="$classmaxclique__heuristics_1_1MaxCliqueHeuristic.html" title="Abstract base class for maximum clique heuristics." alt="" coords="37,80,229,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="109,5,158,32"/>
+</map>

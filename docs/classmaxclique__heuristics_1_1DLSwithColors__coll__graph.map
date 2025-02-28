@@ -1,0 +1,6 @@
+<map id="maxclique_heuristics.DLSwithColors" name="maxclique_heuristics.DLSwithColors">
+<area shape="rect" id="node1" title="Dynamic Local Search (DLS) implementation that uses information about colors of vertices for finding ..." alt="" coords="5,244,223,285"/>
+<area shape="rect" id="node2" href="$classmaxclique__heuristics_1_1DLS.html" title="Normal DLS implementation." alt="" coords="19,169,209,196"/>
+<area shape="rect" id="node3" href="$classmaxclique__heuristics_1_1MaxCliqueHeuristic.html" title="Abstract base class for maximum clique heuristics." alt="" coords="18,80,210,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="89,5,139,32"/>
+</map>

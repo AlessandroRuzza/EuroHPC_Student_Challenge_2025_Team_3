@@ -1,0 +1,7 @@
+<map id="coloring_heuristics.TabuSearch" name="coloring_heuristics.TabuSearch">
+<area shape="rect" id="node1" title="Base Tabu Search heuristic for graph coloring." alt="" coords="17,169,196,211"/>
+<area shape="rect" id="node4" href="$classcoloring__heuristics_1_1SoftMaxTabuSearch.html" title="Tabu Search heuristic for graph coloring with a SoftMax&#45;like selection strategy." alt="" coords="20,259,193,300"/>
+<area shape="rect" id="node2" href="$classcoloring__heuristics_1_1ColoringHeuristic.html" title="Abstract base class for coloring heuristics." alt="" coords="5,80,208,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="82,5,131,32"/>
+<area shape="rect" id="node5" href="$classcoloring__heuristics_1_1ParallelTabuSearch.html" title="Parallel version of (SoftMax) Tabu Search that runs multiple instances on different threads." alt="" coords="9,348,205,389"/>
+</map>

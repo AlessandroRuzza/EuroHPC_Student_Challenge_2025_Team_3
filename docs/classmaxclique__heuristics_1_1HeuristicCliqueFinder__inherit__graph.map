@@ -1,0 +1,5 @@
+<map id="maxclique_heuristics.HeuristicCliqueFinder" name="maxclique_heuristics.HeuristicCliqueFinder">
+<area shape="rect" id="node1" title="Implementation of Greedy algorithm using union&#45;find data structure to find the maximum clique in a gr..." alt="" coords="5,169,228,211"/>
+<area shape="rect" id="node2" href="$classmaxclique__heuristics_1_1MaxCliqueHeuristic.html" title="Abstract base class for maximum clique heuristics." alt="" coords="21,80,213,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="92,5,141,32"/>
+</map>

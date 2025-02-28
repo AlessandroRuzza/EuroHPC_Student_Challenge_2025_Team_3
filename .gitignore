@@ -12,8 +12,8 @@ __pycache__/
 **/*.graph
 *.graph
 **/graph.png
-**/results/[^s][^c][^r][^i][^p]*
-**/results/*.output
+**/results/skew*
+**/results/oldRuns/
 
 # Local Libs
 Libraries/

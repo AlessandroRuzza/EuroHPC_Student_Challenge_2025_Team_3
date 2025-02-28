@@ -1,0 +1,10 @@
+<map id="coloring_heuristics.ColoringHeuristic" name="coloring_heuristics.ColoringHeuristic">
+<area shape="rect" id="node1" title="Abstract base class for coloring heuristics." alt="" coords="103,64,305,105"/>
+<area shape="rect" id="node3" href="$classcoloring__heuristics_1_1BacktrackingDSatur.html" title="Backtracking DSatur coloring algorithm." alt="" coords="353,5,587,47"/>
+<area shape="rect" id="node5" href="$classcoloring__heuristics_1_1DSatur.html" title="DSatur coloring heuristic." alt="" coords="374,71,566,98"/>
+<area shape="rect" id="node6" href="$classcoloring__heuristics_1_1TabuSearch.html" title="Base Tabu Search heuristic for graph coloring." alt="" coords="381,123,559,164"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,71,55,98"/>
+<area shape="rect" id="node4" href="$classcoloring__heuristics_1_1ParallelBacktrackingDSatur.html" title="Parallel version of Backtracking DSatur that runs multiple instances on different threads." alt="" coords="635,5,831,47"/>
+<area shape="rect" id="node7" href="$classcoloring__heuristics_1_1SoftMaxTabuSearch.html" title="Tabu Search heuristic for graph coloring with a SoftMax&#45;like selection strategy." alt="" coords="646,123,819,164"/>
+<area shape="rect" id="node8" href="$classcoloring__heuristics_1_1ParallelTabuSearch.html" title="Parallel version of (SoftMax) Tabu Search that runs multiple instances on different threads." alt="" coords="879,123,1075,164"/>
+</map>
