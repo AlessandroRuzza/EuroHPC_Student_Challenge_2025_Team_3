@@ -72,8 +72,31 @@ The results will be displayed inside the specified ```outFolderPath``` folder, w
 - ```logs```: folder containing ```instance.log``` file 
 - ```output```: folder containing ```instance.output``` file
 
-This folder structure allows a neat file organization when running multiple instances targeting the same ```outFolderPath``` 
 
+The ```instance.output``` contains all of the information about the solvers details, input instance and solution, including:
+
+- ```problem_instance_file_name```: name of the instance
+- ```cmd_line```: command used to run the solver 
+- ```solver_version```: type of solver utilized
+- ```number_of_vertices```: number of vertices inside instance
+- ```number_of_edges```: number of edges inside instance
+- ```time_limit_sec```: maximum time to take before outputting solution
+- ```number_of_worker_processes```: number of MPI nodes utilized
+- ```number_of_cores_per_worker```: number of cores utilized for parallel heuristics
+- ```wall_time_sec```: effective time it needed to compute solution
+- ```is_within_time_limit```: true if solver finished because of time limit, false otherwise
+- ```number_of_colors```: chromatic number found
+- ```coloring```: pairs of (vertex, assigned_color) for each vertex in the graph
+
+The ```instance.log``` is used to store the results obtained at each branch and bound node to prove the final result.
+For each computed node the log shows:
+- the id of the node
+- the branch selection (therefore the vertices that were assumed to have the same color / different  color)
+- The lower and upper bounds found by the node (with the actual colorings and cliques found)
+
+Finally it also shows the final results.
+
+This folder structure allows a neat file organization when running multiple instances targeting the same ```outFolderPath``` 
 ### Sequential Version
 
 To utilize the parallel solver, type the following commnad:
