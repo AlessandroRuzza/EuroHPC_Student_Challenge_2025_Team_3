@@ -22,7 +22,6 @@ This project was developed for the EuroHPC Summit Student Challenge 2025, levera
     - [Output](#output-1)
   - [Documentation](#documentation)
   - [Results \& Benchmarks](#results--benchmarks)
-  - [References](#references)
   - [Acknowledgments](#acknowledgments)
 
 
@@ -119,11 +118,6 @@ The documentation was generated using Doxygen.
 ## Results & Benchmarks
 
 Results are detailed in the report pdf.
-
-## References
-
-- R.M.R Lewis. A Guide to Graph Coloring - Algorithms and Applications
-- Qinghua Wu. The maximum clique problems with applications to graph coloring.
 
 ## Acknowledgments
 
